@@ -1,12 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import {
-  DollarSign,
-  BarChart2,
-  CalendarDays,
-  Percent,
-  TrendingUp,
-  TrendingDown,
-} from "lucide-react";
+import { DollarSign, Percent, TrendingUp, TrendingDown } from "lucide-react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 
 interface SummaryCardProps {
@@ -19,20 +12,26 @@ interface SummaryCardProps {
   isLoading?: boolean;
 }
 
-const formatNumber = (value: number, isDollar: boolean, isPercent: boolean = false): string => {
+const formatNumber = (
+  value: number,
+  isDollar: boolean,
+  isPercent: boolean = false
+): string => {
   if (isDollar) {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat("en-US", {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 2,
     }).format(Math.abs(value));
   }
   if (isPercent) {
-    return new Intl.NumberFormat('en-US', {
-      maximumFractionDigits: 0
-    }).format(value) + '%';
+    return (
+      new Intl.NumberFormat("en-US", {
+        maximumFractionDigits: 0,
+      }).format(value) + "%"
+    );
   }
-  return new Intl.NumberFormat('en-US', {
-    maximumFractionDigits: 0
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 0,
   }).format(value);
 };
 
@@ -51,14 +50,16 @@ const useCountUp = (endValue: number, duration: number = 1000) => {
     const animate = (currentTime: number) => {
       const elapsed = currentTime - startTimeRef.current;
       const progress = Math.min(elapsed / duration, 1);
-      
+
       // Easing function for smooth animation
       const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      
-      const nextCount = progress === 1 
-        ? endValueRef.current 
-        : countRef.current + (endValueRef.current - countRef.current) * easeOutQuart;
-      
+
+      const nextCount =
+        progress === 1
+          ? endValueRef.current
+          : countRef.current +
+            (endValueRef.current - countRef.current) * easeOutQuart;
+
       setCount(nextCount);
 
       if (progress < 1) {
@@ -91,12 +92,11 @@ export default function SummaryCard({
   const isNumber = typeof value === "number";
   const shouldShowDollarPrefix = isNumber && Icon === DollarSign;
   const isPercentValue = isNumber && Icon === Percent;
-  
-  const animatedValue = isNumber 
-    ? useCountUp(value as number, 1000) 
-    : null;
 
-  const formattedValue = isNumber 
+  const countUpValue = useCountUp(isNumber ? (value as number) : 0, 1000);
+  const animatedValue = isNumber ? countUpValue : null;
+
+  const formattedValue = isNumber
     ? formatNumber(animatedValue!, shouldShowDollarPrefix, isPercentValue)
     : value;
 
@@ -108,7 +108,9 @@ export default function SummaryCard({
 
   const LoadingPlaceholder = () => (
     <div className="animate-pulse">
-      <div className={`h-${size === "lg" ? "8" : "6"} bg-gray-200 rounded-lg w-24`}></div>
+      <div
+        className={`h-${size === "lg" ? "8" : "6"} bg-gray-200 rounded-lg w-24`}
+      ></div>
     </div>
   );
 
@@ -146,23 +148,25 @@ export default function SummaryCard({
                 className={`${
                   size === "lg" ? "text-xl md:text-2xl lg:text-3xl" : "text-lg"
                 } font-black ${
-                  showTrend && (value > 0
-                    ? "text-green-600" : 
-                    value < 0 ? "text-red-600"
-                  : null)
+                  showTrend &&
+                  (isNumber && value > 0
+                    ? "text-green-600"
+                    : isNumber && value < 0
+                    ? "text-red-600"
+                    : null)
                 } transition-all duration-200`}
               >
                 {valueWithPrefix}
               </p>
 
-              {showTrend && 
-                (value > 0 ? (
+              {showTrend &&
+                (isNumber && value > 0 ? (
                   <TrendingUp
                     className={`${
                       size === "lg" ? "w-4 h-4 lg:w-8 lg:h-8" : "w-4 h-4"
                     } text-green-600`}
                   />
-                ) : value < 0 ? (
+                ) : isNumber && value < 0 ? (
                   <TrendingDown
                     className={`${
                       size === "lg" ? "w-8 h-8" : "w-4 h-4"

@@ -1,6 +1,5 @@
-import React from 'react';
+import React from "react";
 import {
-  format,
   startOfMonth,
   endOfMonth,
   eachDayOfInterval,
@@ -9,9 +8,9 @@ import {
   isSameDay,
   startOfWeek,
   endOfWeek,
-} from 'date-fns';
-import { DayData } from '../types';
-import DayCell from './DayCell';
+} from "date-fns";
+import { DayData } from "../types";
+import DayCell from "./DayCell";
 
 interface CalendarProps {
   currentDate: Date;
@@ -19,12 +18,16 @@ interface CalendarProps {
   onDayClick: (date: Date) => void;
 }
 
-export default function Calendar({ currentDate, tradeData, onDayClick }: CalendarProps) {
+export default function Calendar({
+  currentDate,
+  tradeData,
+  onDayClick,
+}: CalendarProps) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const calendarStart = startOfWeek(monthStart);
   const calendarEnd = endOfWeek(monthEnd);
-  
+
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
   return (
@@ -32,7 +35,7 @@ export default function Calendar({ currentDate, tradeData, onDayClick }: Calenda
       <div className="overflow-x-auto pb-4 pr-4 hide-scrollbar">
         <div className="min-w-[800px]">
           <div className="grid grid-cols-7 gap-4 mb-4">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
               <div
                 key={day}
                 className="text-center text-sm font-medium text-gray-600 py-2"
@@ -46,7 +49,7 @@ export default function Calendar({ currentDate, tradeData, onDayClick }: Calenda
               const dayData = tradeData.find((data) =>
                 isSameDay(data.date, day)
               );
-              
+
               return (
                 <DayCell
                   key={day.toString()}

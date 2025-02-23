@@ -1,7 +1,7 @@
-import React from 'react';
-import { LogOut } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
-import Logo from '../assets/Logo';
+import React from "react";
+import { LogOut } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import Logo from "../assets/Logo";
 
 interface HeaderProps {
   showSignOut?: boolean;
@@ -10,15 +10,13 @@ interface HeaderProps {
 
 export default function Header({ showSignOut, onSignOut }: HeaderProps) {
   const location = useLocation();
-  const isHomePage = location.pathname === '/';
+  const isHomePage = location.pathname === "/";
 
   const LogoSection = () => (
     <div className="flex items-center gap-4">
       <Logo />
       <div>
-        <h1 className="text-3xl font-black text-black">
-          Flippl.app
-        </h1>
+        <h1 className="text-3xl font-black text-black">Flippl.app</h1>
         <p className="text-black font-medium">
           Flip your trades. Track your P/L.
         </p>

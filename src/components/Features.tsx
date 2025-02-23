@@ -1,8 +1,13 @@
-import React from 'react';
-import { CalendarDays, BarChart2, TrendingUp, BookOpenText } from 'lucide-react';
+import React from "react";
+import {
+  CalendarDays,
+  BarChart2,
+  TrendingUp,
+  BookOpenText,
+} from "lucide-react";
 
 interface Feature {
-  icon: typeof Calendar;
+  icon: typeof CalendarDays;
   title: string;
   description: string;
 }
@@ -16,23 +21,27 @@ export default function Features({ title, description }: FeaturesProps) {
   const features: Feature[] = [
     {
       icon: CalendarDays,
-      title: 'Daily Tracking',
-      description: 'Log your P/L every day with an intuitive calendar view. Track the grind, spot patterns, and stay accountable.',
+      title: "Daily Tracking",
+      description:
+        "Log your P/L every day with an intuitive calendar view. Track the grind, spot patterns, and stay accountable.",
     },
     {
       icon: BarChart2,
-      title: 'Visual Analytics',
-      description: 'See your wins and losses through clean, no-nonsense charts that expose the truth. Because numbers don’t lie.',
+      title: "Visual Analytics",
+      description:
+        "See your wins and losses through clean, no-nonsense charts that expose the truth. Because numbers don’t lie.",
     },
     {
       icon: TrendingUp,
-      title: 'Performance Metrics',
-      description: 'Track win rate, trade count, profit/loss ratio, and other key stats that actually matter.',
+      title: "Performance Metrics",
+      description:
+        "Track win rate, trade count, profit/loss ratio, and other key stats that actually matter.",
     },
     {
       icon: BookOpenText,
-      title: 'Trading Journal',
-      description: 'Keep receipts on your trades. Learn from your moves. Adjust. Improve.',
+      title: "Trading Journal",
+      description:
+        "Keep receipts on your trades. Learn from your moves. Adjust. Improve.",
     },
   ];
 
@@ -41,9 +50,7 @@ export default function Features({ title, description }: FeaturesProps) {
       {(title || description) && (
         <div className="text-center mb-8">
           {title && (
-            <h2 className="text-4xl font-black text-black mb-4">
-              {title}
-            </h2>
+            <h2 className="text-4xl font-black text-black mb-4">{title}</h2>
           )}
           {description && (
             <p className="max-w-xl mx-auto text-lg text-gray-600">
@@ -61,7 +68,9 @@ export default function Features({ title, description }: FeaturesProps) {
                 <feature.icon className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-black mb-2">{feature.title}</h3>
+                <h3 className="text-lg font-bold text-black mb-2">
+                  {feature.title}
+                </h3>
                 <p className="text-gray-600">{feature.description}</p>
               </div>
             </div>

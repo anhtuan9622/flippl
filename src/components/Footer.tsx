@@ -1,7 +1,7 @@
-import React from 'react';
-import { Github, Mail, Coffee } from 'lucide-react';
-import * as Tooltip from '@radix-ui/react-tooltip';
-import { getVersion } from '../lib/version';
+import React from "react";
+import { Mail, Coffee } from "lucide-react";
+import * as Tooltip from "@radix-ui/react-tooltip";
+import { getVersion } from "../lib/version";
 
 export default function Footer() {
   return (
@@ -9,9 +9,10 @@ export default function Footer() {
       <div className="neo-brutalist-white p-6">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-sm font-medium text-gray-600">
-            © {new Date().getFullYear()} Flippl.app. All rights reserved. v{getVersion()}
+            © {new Date().getFullYear()} Flippl.app. All rights reserved. v
+            {getVersion()}
           </div>
-          
+
           <div className="flex items-center gap-4">
             <Tooltip.Provider>
               <Tooltip.Root>
@@ -35,7 +36,7 @@ export default function Footer() {
                   </Tooltip.Content>
                 </Tooltip.Portal>
               </Tooltip.Root>
-              
+
               <Tooltip.Root>
                 <Tooltip.Trigger asChild>
                   <a

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -8,10 +8,10 @@ import {
   Title,
   Tooltip,
   Legend,
-} from 'chart.js';
-import { Line } from 'react-chartjs-2';
-import { format, eachDayOfInterval, startOfMonth, endOfMonth, parseISO } from 'date-fns';
-import { DayData } from '../types';
+} from "chart.js";
+import { Line } from "react-chartjs-2";
+import { format, eachDayOfInterval, startOfMonth, endOfMonth } from "date-fns";
+import { DayData } from "../types";
 
 ChartJS.register(
   CategoryScale,
@@ -29,37 +29,41 @@ interface ProfitChartProps {
   onPointClick?: (date: Date) => void;
 }
 
-export default function ProfitChart({ currentDate, tradeData, onPointClick }: ProfitChartProps) {
+export default function ProfitChart({
+  currentDate,
+  tradeData,
+  onPointClick,
+}: ProfitChartProps) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  const chartData = daysInMonth.map(day => {
-    const trade = tradeData.find(data => 
-      format(data.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
+  const chartData = daysInMonth.map((day) => {
+    const trade = tradeData.find(
+      (data) => format(data.date, "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
     );
     return trade?.trades?.profit || 0;
   });
 
   const data = {
-    labels: daysInMonth.map(day => format(day, 'd')),
+    labels: daysInMonth.map((day) => format(day, "d")),
     datasets: [
       {
-        label: 'Daily Profit/Loss',
+        label: "Daily Profit/Loss",
         data: chartData,
-        borderColor: 'black',
-        backgroundColor: 'gray',
+        borderColor: "black",
+        backgroundColor: "gray",
         borderWidth: 4,
         pointRadius: 8,
         pointHoverRadius: 12,
         pointHoverBorderWidth: 4,
         tension: 0.2,
         segment: {
-          borderColor: 'black'
+          borderColor: "black",
         },
         pointBackgroundColor: (ctx: any) => {
-          if (!ctx.raw) return 'gray';
-          return ctx.raw > 0 ? '#16a34a' : ctx.raw < 0 ? '#dc2626' : 'gray';
+          if (!ctx.raw) return "gray";
+          return ctx.raw > 0 ? "#16a34a" : ctx.raw < 0 ? "#dc2626" : "gray";
         },
       },
     ],
@@ -73,26 +77,28 @@ export default function ProfitChart({ currentDate, tradeData, onPointClick }: Pr
         display: false,
       },
       tooltip: {
-        backgroundColor: '#facc15',
-        titleColor: 'black',
+        backgroundColor: "#facc15",
+        titleColor: "black",
         titleFont: {
-          weight: 'normal',
+          weight: "normal",
           size: 14,
         },
-        bodyColor: 'black',
+        bodyColor: "black",
         bodyFont: {
-          weight: 'bold',
+          weight: "bold",
           size: 14,
         },
         padding: 12,
-        borderColor: 'black',
+        borderColor: "black",
         borderWidth: 3,
         displayColors: false,
         callbacks: {
           title: (items: any) => `Day ${items[0].label}`,
           label: (item: any) => {
             const value = item.raw;
-            return value < 0 ? `-$${Math.abs(value).toLocaleString()}` : `$${value.toLocaleString()}`;
+            return value < 0
+              ? `-$${Math.abs(value).toLocaleString()}`
+              : `$${value.toLocaleString()}`;
           },
         },
       },
@@ -104,31 +110,33 @@ export default function ProfitChart({ currentDate, tradeData, onPointClick }: Pr
         },
         border: {
           width: 3,
-          color: 'black',
+          color: "black",
         },
         ticks: {
-          color: 'black',
+          color: "black",
           font: {
-            weight: 'bold',
+            weight: "bold",
           },
         },
       },
       y: {
         grid: {
-          color: '#e5e7eb',
+          color: "#e5e7eb",
           lineWidth: 2,
         },
         border: {
           width: 3,
-          color: 'black',
+          color: "black",
         },
         ticks: {
-          color: 'black',
+          color: "black",
           font: {
-            weight: 'bold',
+            weight: "bold",
           },
           callback: (value: number) => {
-            return value < 0 ? `-$${Math.abs(value).toLocaleString()}` : `$${value.toLocaleString()}`;
+            return value < 0
+              ? `-$${Math.abs(value).toLocaleString()}`
+              : `$${value.toLocaleString()}`;
           },
         },
       },
