@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { 
   format, 
   addMonths, 
@@ -18,7 +19,7 @@ import {
   BarChart2,
   CalendarDays,
   Percent,
-  LogOut,
+  Download,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Calendar from './components/Calendar';
@@ -29,8 +30,12 @@ import SummaryCard from './components/SummaryCard';
 import ViewToggle from './components/ViewToggle';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import ShareButton from './components/ShareButton';
+import SharedSummary from './components/SharedSummary';
+import AllTimeSummary from './components/AllTimeSummary';
+import PasswordReset from './components/PasswordReset';
 import { TradeEntry, DayData } from './types';
-import { supabase } from './lib/supabase';
+import { supabase, subscribeToTrades, retryOperation, authChannel } from './lib/supabase';
 
 type View = 'calendar' | 'chart';
 
@@ -39,357 +44,433 @@ function App() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [tradeData, setTradeData] = useState<DayData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [currentView, setCurrentView] = useState<View>('calendar');
-
-  useEffect(() => {
-    checkSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session);
-      if (session) {
-        fetchTradeData();
-      } else {
-        setTradeData([]);
-        setLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const checkSession = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
-      if (session) {
-        fetchTradeData();
-      } else {
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error('Error checking session:', error);
-      setIsAuthenticated(false);
-      setLoading(false);
-    }
-  };
+  const [userId, setUserId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const fetchTradeData = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('trades')
-      .select('*')
-      .order('date', { ascending: true });
+    if (!userId) return [];
+    
+    try {
+      const trades = await retryOperation(async () => {
+        const { data, error } = await supabase
+          .from('trades')
+          .select('*')
+          .eq('user_id', userId)
+          .order('date', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching trade data:', error.message);
-      toast.error('Failed to load trade data');
-      setLoading(false);
-      return;
-    }
+        if (error) throw error;
+        return data || [];
+      });
 
-    const formattedData: DayData[] = data.map(trade => ({
-      date: parseISO(trade.date),
-      trades: {
-        id: trade.id,
+      return trades.map(trade => ({
         date: parseISO(trade.date),
-        profit: trade.profit,
-        trades: trade.trades_count,
-        winRate: trade.profit > 0 ? 100 : 0,
-      },
-    }));
-
-    setTradeData(formattedData);
-    setLoading(false);
-  };
-
-  const handlePreviousMonth = () => {
-    setCurrentDate(subMonths(currentDate, 1));
-  };
-
-  const handleNextMonth = () => {
-    setCurrentDate(addMonths(currentDate, 1));
-  };
-
-  const handleDayClick = (date: Date) => {
-    setSelectedDate(date);
+        trades: {
+          id: trade.id,
+          date: parseISO(trade.date),
+          profit: trade.profit,
+          trades: trade.trades_count,
+          winRate: trade.profit > 0 ? 100 : 0,
+        },
+      }));
+    } catch (error) {
+      console.error('Error fetching trades:', error);
+      toast.error('Failed to load trades. Please try again.');
+      return [];
+    }
   };
 
   const handleSaveTradeData = async (data: { profit: number; trades: number }) => {
     if (!selectedDate) return;
 
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.user) {
-      toast.error('Your session has expired. Please sign in again.');
-      setIsAuthenticated(false);
-      return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        toast.error('Your session has expired. Please sign in again.');
+        setIsAuthenticated(false);
+        return;
+      }
+
+      const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+      
+      await retryOperation(async () => {
+        const { error } = await supabase
+          .from('trades')
+          .upsert({
+            user_id: session.user.id,
+            date: formattedDate,
+            profit: data.profit,
+            trades_count: data.trades,
+          }, {
+            onConflict: 'user_id,date',
+            ignoreDuplicates: false
+          });
+
+        if (error) throw error;
+      });
+
+      const updatedTrades = await fetchTradeData();
+      setTradeData(updatedTrades);
+      setSelectedDate(null);
+      toast.success('Trade data saved successfully');
+    } catch (error) {
+      console.error('Error saving trade:', error);
+      toast.error('Failed to save trade data. Please try again.');
     }
-
-    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-    
-    const tradeEntry = {
-      user_id: session.session.user.id,
-      date: formattedDate,
-      profit: data.profit,
-      trades_count: data.trades,
-    };
-
-    const { data: savedTrade, error } = await supabase
-      .from('trades')
-      .upsert(tradeEntry, {
-        onConflict: 'user_id,date',
-        ignoreDuplicates: false
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error saving trade data:', error.message);
-      toast.error('Failed to save trade data');
-      return;
-    }
-
-    const newEntry: TradeEntry = {
-      id: savedTrade.id,
-      date: selectedDate,
-      profit: savedTrade.profit,
-      trades: savedTrade.trades_count,
-      winRate: savedTrade.profit > 0 ? 100 : 0,
-    };
-
-    setTradeData(prev => {
-      const filtered = prev.filter(
-        entry => format(entry.date, 'yyyy-MM-dd') !== formattedDate
-      );
-      return [...filtered, { date: selectedDate, trades: newEntry }];
-    });
-
-    setSelectedDate(null);
-    toast.success('Trade data saved successfully');
   };
 
   const handleDeleteTrade = async (id: string) => {
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.user) {
-      toast.error('Your session has expired. Please sign in again.');
-      setIsAuthenticated(false);
-      return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        toast.error('Your session has expired. Please sign in again.');
+        setIsAuthenticated(false);
+        return;
+      }
+
+      await retryOperation(async () => {
+        const { error } = await supabase
+          .from('trades')
+          .delete()
+          .match({ id });
+
+        if (error) throw error;
+      });
+
+      const updatedTrades = await fetchTradeData();
+      setTradeData(updatedTrades);
+      setSelectedDate(null);
+      toast.success('Trade deleted successfully');
+    } catch (error) {
+      console.error('Error deleting trade:', error);
+      toast.error('Failed to delete trade. Please try again.');
     }
-
-    const { error } = await supabase
-      .from('trades')
-      .delete()
-      .match({ id });
-
-    if (error) {
-      console.error('Error deleting trade:', error.message);
-      toast.error('Failed to delete trade');
-      return;
-    }
-
-    setTradeData(prev => prev.filter(day => day.trades?.id !== id));
-    setSelectedDate(null);
-    toast.success('Trade deleted successfully');
   };
+
+  const calculateAllTimeStats = (trades: DayData[]) => {
+    const allTimeProfit = trades.reduce((sum, day) => sum + (day.trades?.profit || 0), 0);
+    const allTimeTrades = trades.reduce((sum, day) => sum + (day.trades?.trades || 0), 0);
+    const allTimeTradingDays = trades.length;
+    const allTimeProfitableDays = trades.filter(day => day.trades && day.trades.profit > 0).length;
+    const allTimeWinRate = allTimeTradingDays > 0 ? (allTimeProfitableDays / allTimeTradingDays) * 100 : 0;
+    
+    const EPSILON = 1e-10;
+    const normalizedProfit = Math.abs(allTimeProfit) < EPSILON ? 0 : allTimeProfit;
+
+    return {
+      profit: normalizedProfit,
+      trades: allTimeTrades,
+      tradingDays: allTimeTradingDays,
+      winRate: allTimeWinRate
+    };
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    let tradesSubscription: ReturnType<typeof subscribeToTrades>;
+
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+
+        if (session?.user) {
+          setUserId(session.user.id);
+          setIsAuthenticated(true);
+          const trades = await fetchTradeData();
+          if (mounted) {
+            setTradeData(trades);
+            setLoading(false);
+            setIsInitialLoad(false);
+            
+            tradesSubscription = subscribeToTrades(session.user.id, async () => {
+              const updatedTrades = await fetchTradeData();
+              if (mounted) {
+                setTradeData(updatedTrades);
+              }
+            });
+          }
+        } else {
+          if (mounted) {
+            setUserId(null);
+            setIsAuthenticated(false);
+            setLoading(false);
+            setIsInitialLoad(false);
+          }
+        }
+      } catch (error) {
+        console.error('Error in initializeAuth:', error);
+        if (mounted) {
+          setUserId(null);
+          setIsAuthenticated(false);
+          setLoading(false);
+          setIsInitialLoad(false);
+        }
+      }
+    };
+
+    initializeAuth();
+
+    const handleAuthMessage = (msg: { type: string }) => {
+      if (msg.type === 'AUTH_ERROR' || msg.type === 'SIGN_OUT') {
+        setUserId(null);
+        setIsAuthenticated(false);
+        setTradeData([]);
+      }
+    };
+
+    authChannel.addEventListener('message', handleAuthMessage);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+
+      if (session?.user) {
+        setUserId(session.user.id);
+        setIsAuthenticated(true);
+        const trades = await fetchTradeData();
+        if (mounted) {
+          setTradeData(trades);
+          setLoading(false);
+
+          tradesSubscription = subscribeToTrades(session.user.id, async () => {
+            const updatedTrades = await fetchTradeData();
+            if (mounted) {
+              setTradeData(updatedTrades);
+            }
+          });
+        }
+      } else {
+        setUserId(null);
+        setIsAuthenticated(false);
+        setTradeData([]);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+      if (tradesSubscription) {
+        tradesSubscription.unsubscribe();
+      }
+      authChannel.removeEventListener('message', handleAuthMessage);
+    };
+  }, [userId]);
 
   const handleSignOut = async () => {
+    setLoading(true);
     try {
+      await supabase.auth.signOut();
       setIsAuthenticated(false);
       setTradeData([]);
-      await supabase.auth.signOut();
       toast.success('Signed out successfully');
-    } catch (err) {
-      console.error('Error during sign out:', err);
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast.error('Failed to sign out');
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (!isAuthenticated) {
-    return <AuthForm onSuccess={() => {
-      setIsAuthenticated(true);
-      toast.success('Signed in successfully');
-    }} />;
-  }
+  const handleExportCSV = () => {
+    try {
+      const sortedData = [...tradeData].sort((a, b) => 
+        a.date.getTime() - b.date.getTime()
+      );
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-yellow-50 flex items-center justify-center">
-        <div className="text-xl font-bold text-black neo-brutalist-white px-8 py-4">Loading...</div>
-      </div>
-    );
-  }
+      const allTimeStats = calculateAllTimeStats(sortedData);
+
+      const csvContent = [
+        ['Date', 'Profit/Loss ($)', 'No. of Trades', 'Win/Loss'].join(','),
+        ...sortedData.map(day => [
+          format(day.date, 'yyyy-MM-dd'),
+          day.trades?.profit || 0,
+          day.trades?.trades || 0,
+          day.trades?.profit && day.trades.profit > 0 ? 'Win' : 'Loss'
+        ].join(',')),
+        '',
+        'All-Time Summary',
+        `"Total Profit/Loss: ${allTimeStats.profit < 0 ? '-' : ''}$${Math.abs(allTimeStats.profit).toLocaleString()}, Total Trades: ${allTimeStats.trades}, Trading Days: ${allTimeStats.tradingDays}, Win Rate: ${allTimeStats.winRate.toFixed(0)}%"`
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `flippl_trades_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success('Trade data exported successfully');
+    } catch (error) {
+      console.error('Error exporting trade data:', error);
+      toast.error('Failed to export trade data');
+    }
+  };
 
   const currentMonthData = tradeData.filter(day => 
     isSameMonth(day.date, currentDate)
   );
 
-  const yearToMonthData = tradeData.filter(day => 
-    isAfter(day.date, startOfYear(currentDate)) && 
-    isBefore(day.date, addMonths(startOfMonth(currentDate), 1))
-  );
-
-  // Monthly calculations
-  const totalProfit = currentMonthData.reduce((sum, day) => {
-    return sum + (day.trades?.profit || 0);
-  }, 0);
-
-  const totalTrades = currentMonthData.reduce((sum, day) => {
-    return sum + (day.trades?.trades || 0);
-  }, 0);
-
-  const profitableDays = currentMonthData.filter(day => 
-    day.trades && day.trades.profit > 0
-  ).length;
-
-  const tradingDays = currentMonthData.length;
-
-  const winRate = tradingDays > 0 
-    ? ((profitableDays / tradingDays) * 100).toFixed(0)
-    : '0';
-
-  // Year to month calculations
-  const yearToMonthProfit = yearToMonthData.reduce((sum, day) => {
-    return sum + (day.trades?.profit || 0);
-  }, 0);
-
-  const yearToMonthTrades = yearToMonthData.reduce((sum, day) => {
-    return sum + (day.trades?.trades || 0);
-  }, 0);
-
-  const yearToMonthProfitableDays = yearToMonthData.filter(day => 
-    day.trades && day.trades.profit > 0
-  ).length;
-
-  const yearToMonthTradingDays = yearToMonthData.length;
-
-  const yearToMonthWinRate = yearToMonthTradingDays > 0
-    ? ((yearToMonthProfitableDays / yearToMonthTradingDays) * 100).toFixed(0)
-    : '0';
+  const monthStats = calculateAllTimeStats(currentMonthData);
+  const allTimeStats = calculateAllTimeStats(tradeData);
 
   const selectedDayData = selectedDate 
     ? tradeData.find(day => format(day.date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd'))
     : null;
 
-  return (
-    <div className="min-h-screen bg-yellow-50 px-4 py-8 md:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
-        <Header showSignOut onSignOut={handleSignOut} />
-
-        <div className="neo-brutalist-white p-6 mb-6">
-          <h2 className="text-xl font-black text-black underline decoration-wavy decoration-yellow-500 mb-4 flex items-center gap-2">
-            Year-to-Date Summary
-            <span className="text-sm font-bold">
-              ({format(startOfYear(currentDate), 'MMM d')} - {format(endOfMonth(currentDate), 'MMM d, yyyy')})
-            </span>
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
-            <SummaryCard
-              icon={DollarSign}
-              value={yearToMonthProfit}
-              label="Profit/Loss"
-              isProfit={yearToMonthProfit >= 0}
-              showTrend
-            />
-            <SummaryCard
-              icon={BarChart2}
-              value={yearToMonthTrades}
-              label="No. of Trades"
-            />
-            <SummaryCard
-              icon={CalendarDays}
-              value={yearToMonthTradingDays}
-              label="Trading Days"
-            />
-            <SummaryCard
-              icon={Percent}
-              value={`${yearToMonthWinRate}%`}
-              label="Win Rate"
-            />
-          </div>
+  if (isInitialLoad) {
+    return (
+      <div className="min-h-screen bg-yellow-50 flex items-center justify-center">
+        <div className="text-xl font-bold text-black neo-brutalist-white px-8 py-4">
+          Loading...
         </div>
-
-        <div className="neo-brutalist-white p-6">
-          <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <h2 className="text-3xl font-black text-black underline decoration-wavy decoration-yellow-500">
-                {format(currentDate, 'MMMM yyyy')}
-              </h2>
-              
-              <div className="flex gap-2 flex-wrap">
-                <SummaryCard
-                  icon={DollarSign}
-                  value={totalProfit}
-                  isProfit={totalProfit >= 0}
-                  showTrend
-                  size="sm"
-                />
-                <SummaryCard
-                  icon={BarChart2}
-                  value={totalTrades}
-                  size="sm"
-                />
-                <SummaryCard
-                  icon={CalendarDays}
-                  value={tradingDays}
-                  size="sm"
-                />
-                <SummaryCard
-                  icon={Percent}
-                  value={`${winRate}%`}
-                  size="sm"
-                />
-              </div>
-
-              <div>
-                <ViewToggle
-                  currentView={currentView}
-                  onViewChange={(view) => setCurrentView(view)}
-                />
-              </div>
-              
-              <div className="flex gap-2">
-                <button
-                  onClick={handlePreviousMonth}
-                  className="neo-brutalist-blue p-2"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={handleNextMonth}
-                  className="neo-brutalist-blue p-2"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-            
-            {currentView === 'calendar' ? (
-              <Calendar
-                currentDate={currentDate}
-                tradeData={tradeData}
-                onDayClick={handleDayClick}
-              />
-            ) : (
-              <ProfitChart
-                currentDate={currentDate}
-                tradeData={tradeData}
-              />
-            )}
-          </div>
-        </div>
-
-        <Footer />
       </div>
+    );
+  }
 
-      {selectedDate && (
-        <TradeForm
-          date={selectedDate}
-          existingTrade={selectedDayData?.trades}
-          onSave={handleSaveTradeData}
-          onDelete={handleDeleteTrade}
-          onClose={() => setSelectedDate(null)}
-        />
-      )}
-    </div>
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={
+          !isAuthenticated ? (
+            <AuthForm onSuccess={async () => {
+              const { data: { session } } = await supabase.auth.getSession();
+              if (session?.user) {
+                setUserId(session.user.id);
+                setIsAuthenticated(true);
+                const trades = await fetchTradeData();
+                setTradeData(trades);
+                toast.success('Signed in successfully');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }} />
+          ) : (
+            <div className="min-h-screen bg-yellow-50 px-4 py-8 md:px-6 lg:px-8">
+              <div className="max-w-6xl mx-auto">
+                <Header showSignOut onSignOut={handleSignOut} />
+
+                <AllTimeSummary
+                  stats={allTimeStats}
+                  title="All-Time Summary"
+                  isLoading={loading}
+                  actions={
+                    <>
+                      <button
+                        onClick={handleExportCSV}
+                        className="neo-brutalist-blue px-4 py-2 font-bold flex items-center gap-2"
+                      >
+                        <Download className="w-4 h-4" />
+                        Export
+                      </button>
+                      <ShareButton yearToDateStats={allTimeStats} />
+                    </>
+                  }
+                />
+
+                <div className="neo-brutalist-white p-6">
+                  <div className="flex flex-col gap-6">
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                      <h2 className="text-3xl font-black text-black underline decoration-wavy decoration-yellow-400">
+                        {format(currentDate, 'MMMM yyyy')}
+                      </h2>
+                      
+                      <div className="flex gap-2 flex-wrap">
+                        <SummaryCard
+                          icon={DollarSign}
+                          value={monthStats.profit}
+                          showTrend
+                          size="sm"
+                          tooltipText="Profit/Loss of this month"
+                          isLoading={loading}
+                        />
+                        <SummaryCard
+                          icon={BarChart2}
+                          value={monthStats.trades}
+                          size="sm"
+                          tooltipText="Number of trades of this month"
+                          isLoading={loading}
+                        />
+                        <SummaryCard
+                          icon={CalendarDays}
+                          value={monthStats.tradingDays}
+                          size="sm"
+                          tooltipText="Trading days of this month"
+                          isLoading={loading}
+                        />
+                        <SummaryCard
+                          icon={Percent}
+                          value={monthStats.winRate}
+                          size="sm"
+                          tooltipText="Win rate of this month"
+                          isLoading={loading}
+                        />
+                      </div>
+
+                      <div>
+                        <ViewToggle
+                          currentView={currentView}
+                          onViewChange={(view) => setCurrentView(view)}
+                        />
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setCurrentDate(subMonths(currentDate, 1))}
+                          className="neo-brutalist-blue p-2"
+                        >
+                          <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => setCurrentDate(addMonths(currentDate, 1))}
+                          className="neo-brutalist-blue p-2"
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {currentView === 'calendar' ? (
+                      <Calendar
+                        currentDate={currentDate}
+                        tradeData={tradeData}
+                        onDayClick={setSelectedDate}
+                      />
+                    ) : (
+                      <ProfitChart
+                        currentDate={currentDate}
+                        tradeData={tradeData}
+                        onPointClick={setSelectedDate}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                <Footer />
+              </div>
+
+              {selectedDate && (
+                <TradeForm
+                  date={selectedDate}
+                  existingTrade={selectedDayData?.trades}
+                  onSave={handleSaveTradeData}
+                  onDelete={handleDeleteTrade}
+                  onClose={() => setSelectedDate(null)}
+                />
+              )}
+            </div>
+          )
+        } />
+        <Route path="/reset-password" element={<PasswordReset />} />
+        <Route path="/share/:shareId" element={<SharedSummary />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

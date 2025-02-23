@@ -5,6 +5,19 @@
 @layer base {
   body {
     @apply bg-yellow-50;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Sofia Sans Semi Condensed', sans-serif;
+  }
+
+  ::selection {
+    @apply bg-yellow-400 text-black;
+  }
+  
+  ::-moz-selection {
+    @apply bg-yellow-400 text-black;
   }
 }
 
@@ -14,7 +27,7 @@
   }
   
   .neo-brutalist-yellow {
-    @apply bg-yellow-500 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-white hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all rounded-xl;
+    @apply bg-yellow-400 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-white hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all rounded-xl;
   }
   
   .neo-brutalist-blue {
@@ -30,7 +43,23 @@
   }
 
   .neo-input {
-    @apply border-4 border-black bg-white px-3 py-2 focus:outline-none focus:ring-0 focus:border-blue-500 rounded-xl;
+    @apply border-4 border-black bg-white px-3 py-2 focus:outline-none focus:ring-0 focus:border-yellow-500 rounded-xl;
+  }
+
+  /* Improve touch targets */
+  button, a {
+    @apply touch-manipulation select-none;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .hide-scrollbar {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
   }
 }
 
@@ -38,7 +67,7 @@
 @keyframes slideUpAndFade {
   from {
     opacity: 0;
-    transform: translateY(2px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -49,7 +78,7 @@
 @keyframes slideRightAndFade {
   from {
     opacity: 0;
-    transform: translateX(-2px);
+    transform: translateX(-4px);
   }
   to {
     opacity: 1;
@@ -60,7 +89,7 @@
 @keyframes slideDownAndFade {
   from {
     opacity: 0;
-    transform: translateY(-2px);
+    transform: translateY(-4px);
   }
   to {
     opacity: 1;
@@ -71,7 +100,7 @@
 @keyframes slideLeftAndFade {
   from {
     opacity: 0;
-    transform: translateX(2px);
+    transform: translateX(4px);
   }
   to {
     opacity: 1;
@@ -80,9 +109,12 @@
 }
 
 [data-radix-tooltip-content] {
-  animation-duration: 400ms;
+  animation-duration: 150ms;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform, opacity;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 [data-radix-tooltip-content][data-side="top"] {
@@ -99,4 +131,11 @@
 
 [data-radix-tooltip-content][data-side="left"] {
   animation-name: slideRightAndFade;
+}
+
+/* Improve touch target size */
+[data-radix-tooltip-trigger] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }

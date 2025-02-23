@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { X, Trash2 } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface TradeFormProps {
   date: Date;
@@ -17,24 +18,57 @@ interface TradeFormProps {
 export default function TradeForm({ date, existingTrade, onSave, onDelete, onClose }: TradeFormProps) {
   const [profit, setProfit] = useState(existingTrade ? String(existingTrade.profit) : '');
   const [trades, setTrades] = useState(existingTrade ? String(existingTrade.trades) : '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handle escape key to close modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({
-      profit: Number(profit),
-      trades: Number(trades),
-    });
-  };
-
-  const handleDelete = () => {
-    if (existingTrade && onDelete) {
-      onDelete(existingTrade.id);
+    if (isSubmitting) return;
+    
+    try {
+      setIsSubmitting(true);
+      await onSave({
+        profit: Number(profit),
+        trades: Number(trades),
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  const handleDelete = useCallback(async () => {
+    if (!existingTrade || !onDelete || isSubmitting) return;
+    
+    try {
+      setIsSubmitting(true);
+      await onDelete(existingTrade.id);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [existingTrade, onDelete, isSubmitting]);
+
+  // Prevent clicks inside modal from closing it
+  const handleModalClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div className="neo-brutalist-white p-6 w-full max-w-md">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      onClick={onClose}
+    >
+      <div 
+        className="neo-brutalist-white p-6 w-full max-w-md"
+        onClick={handleModalClick}
+      >
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-black text-black">
             {existingTrade ? 'Edit' : 'Add'} Trade Data
@@ -45,6 +79,7 @@ export default function TradeForm({ date, existingTrade, onSave, onDelete, onClo
           <button
             onClick={onClose}
             className="neo-brutalist-gray p-2"
+            disabled={isSubmitting}
           >
             <X className="w-5 h-5" />
           </button>
@@ -62,6 +97,10 @@ export default function TradeForm({ date, existingTrade, onSave, onDelete, onClo
               className="neo-input w-full"
               placeholder="Enter amount (negative for losses)"
               required
+              max="100000000"
+              min="-100000000"
+              step="any"
+              disabled={isSubmitting}
             />
           </div>
           
@@ -77,6 +116,8 @@ export default function TradeForm({ date, existingTrade, onSave, onDelete, onClo
               placeholder="Enter number of trades"
               required
               min="1"
+              max="1000000"
+              disabled={isSubmitting}
             />
           </div>
           
@@ -86,6 +127,7 @@ export default function TradeForm({ date, existingTrade, onSave, onDelete, onClo
                 type="button"
                 onClick={handleDelete}
                 className="neo-brutalist-red px-4 py-2 font-bold flex items-center gap-2"
+                disabled={isSubmitting}
               >
                 <Trash2 className="w-4 h-4" />
                 Delete
@@ -96,14 +138,16 @@ export default function TradeForm({ date, existingTrade, onSave, onDelete, onClo
                 type="button"
                 onClick={onClose}
                 className="neo-brutalist-gray px-4 py-2 font-bold text-black"
+                disabled={isSubmitting}
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 className="neo-brutalist-blue px-4 py-2 font-bold"
+                disabled={isSubmitting}
               >
-                Save
+                {isSubmitting ? 'Saving...' : 'Save'}
               </button>
             </div>
           </div>

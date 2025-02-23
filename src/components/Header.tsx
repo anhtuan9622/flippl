@@ -1,5 +1,7 @@
 import React from 'react';
-import { Calendar as CalendarIcon, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import Logo from '../assets/Logo';
 
 interface HeaderProps {
   showSignOut?: boolean;
@@ -7,23 +9,34 @@ interface HeaderProps {
 }
 
 export default function Header({ showSignOut, onSignOut }: HeaderProps) {
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+
+  const LogoSection = () => (
+    <div className="flex items-center gap-4">
+      <Logo />
+      <div>
+        <h1 className="text-3xl font-black text-black">
+          Flippl.app
+        </h1>
+        <p className="text-black font-medium">
+          Flip your trades. Track your P/L.
+        </p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="mb-8">
       <div className="neo-brutalist-white p-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex items-center gap-6">
-            <div className="w-16 h-16 neo-brutalist-gray flex items-center justify-center">
-              <CalendarIcon className="w-8 h-8 text-black" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-black text-black">
-                Flippl.app
-              </h1>
-              <p className="text-black font-medium">
-                Flip your trades. Track your P/L.
-              </p>
-            </div>
-          </div>
+          {isHomePage ? (
+            <LogoSection />
+          ) : (
+            <Link to="/" className="hover:opacity-80 transition-opacity">
+              <LogoSection />
+            </Link>
+          )}
           {showSignOut && onSignOut && (
             <button
               onClick={onSignOut}

@@ -1,26 +1,30 @@
 {
-  "name": "stock-trading-calendar",
+  "name": "flippl",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run version:patch && npm run update:version && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "version:patch": "npm version patch --no-git-tag-version",
+    "update:version": "node --loader ts-node/esm -e \"import { writeFileSync } from 'fs'; import { createRequire } from 'module'; const require = createRequire(import.meta.url); const pkg = require('./package.json'); writeFileSync('.env', `VITE_APP_VERSION=${pkg.version}\n`);\""
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-popover": "^1.0.7",
     "@radix-ui/react-tooltip": "^1.0.7",
     "@supabase/supabase-js": "^2.39.7",
+    "broadcast-channel": "^7.0.0",
     "chart.js": "^4.4.1",
     "date-fns": "^3.3.1",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.3.1",
-    "react-hot-toast": "^2.4.1"
+    "react-hot-toast": "^2.4.1",
+    "react-router-dom": "^6.22.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",

@@ -1,7 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M2 20h.01"/>
-  <path d="M7 20v-4"/>
-  <path d="M12 20v-8"/>
-  <path d="M17 20V8"/>
-  <path d="M22 4v16"/>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="32" height="32" rx="4" fill="#facc15"/>
+  
+  <!-- Border -->
+  <rect x="2" y="2" width="28" height="28" rx="3" fill="none" stroke="black" stroke-width="2"/>
+  
+  <!-- Letter F -->
+  <path d="M10 8H22V12H14V14H20V18H14V24H10V8Z" fill="black"/>
 </svg>

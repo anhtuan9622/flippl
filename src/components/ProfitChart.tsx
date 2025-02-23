@@ -10,7 +10,7 @@ import {
   Legend,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { format, eachDayOfInterval, startOfMonth, endOfMonth } from 'date-fns';
+import { format, eachDayOfInterval, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { DayData } from '../types';
 
 ChartJS.register(
@@ -26,9 +26,10 @@ ChartJS.register(
 interface ProfitChartProps {
   currentDate: Date;
   tradeData: DayData[];
+  onPointClick?: (date: Date) => void;
 }
 
-export default function ProfitChart({ currentDate, tradeData }: ProfitChartProps) {
+export default function ProfitChart({ currentDate, tradeData, onPointClick }: ProfitChartProps) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
@@ -46,22 +47,19 @@ export default function ProfitChart({ currentDate, tradeData }: ProfitChartProps
       {
         label: 'Daily Profit/Loss',
         data: chartData,
-        borderColor: '#2563eb',
-        backgroundColor: '#3b82f6',
+        borderColor: 'black',
+        backgroundColor: 'gray',
         borderWidth: 4,
-        pointRadius: 6,
-        pointHoverRadius: 8,
+        pointRadius: 8,
+        pointHoverRadius: 12,
+        pointHoverBorderWidth: 4,
         tension: 0.2,
         segment: {
-          borderColor: (ctx: any) => {
-            if (!ctx.p0.parsed.y || !ctx.p1.parsed.y) return '#2563eb';
-            return ctx.p0.parsed.y > 0 && ctx.p1.parsed.y > 0 ? '#16a34a' : 
-                   ctx.p0.parsed.y < 0 && ctx.p1.parsed.y < 0 ? '#dc2626' : '#2563eb';
-          },
+          borderColor: 'black'
         },
         pointBackgroundColor: (ctx: any) => {
-          if (!ctx.raw) return '#3b82f6';
-          return ctx.raw > 0 ? '#16a34a' : ctx.raw < 0 ? '#dc2626' : '#3b82f6';
+          if (!ctx.raw) return 'gray';
+          return ctx.raw > 0 ? '#16a34a' : ctx.raw < 0 ? '#dc2626' : 'gray';
         },
       },
     ],
@@ -75,14 +73,15 @@ export default function ProfitChart({ currentDate, tradeData }: ProfitChartProps
         display: false,
       },
       tooltip: {
-        backgroundColor: 'white',
+        backgroundColor: '#facc15',
         titleColor: 'black',
         titleFont: {
-          weight: 'bold',
+          weight: 'normal',
           size: 14,
         },
         bodyColor: 'black',
         bodyFont: {
+          weight: 'bold',
           size: 14,
         },
         padding: 12,
@@ -93,7 +92,7 @@ export default function ProfitChart({ currentDate, tradeData }: ProfitChartProps
           title: (items: any) => `Day ${items[0].label}`,
           label: (item: any) => {
             const value = item.raw;
-            return `$${value.toLocaleString()}`;
+            return value < 0 ? `-$${Math.abs(value).toLocaleString()}` : `$${value.toLocaleString()}`;
           },
         },
       },
@@ -128,16 +127,31 @@ export default function ProfitChart({ currentDate, tradeData }: ProfitChartProps
           font: {
             weight: 'bold',
           },
-          callback: (value: number) => `$${value.toLocaleString()}`,
+          callback: (value: number) => {
+            return value < 0 ? `-$${Math.abs(value).toLocaleString()}` : `$${value.toLocaleString()}`;
+          },
         },
       },
+    },
+    onClick: (event: any, elements: any) => {
+      if (elements.length > 0 && onPointClick) {
+        const index = elements[0].index;
+        onPointClick(daysInMonth[index]);
+      }
     },
   };
 
   return (
     <div className="neo-brutalist-white p-4 md:p-6">
-      <div className="h-[300px] md:h-[400px]">
-        <Line data={data} options={options} />
+      <div className="overflow-x-auto pb-4 pr-2 hide-scrollbar">
+        <div className="min-w-[800px]">
+          <div className="h-[300px] md:h-[400px]">
+            <Line data={data} options={options} />
+          </div>
+        </div>
+      </div>
+      <div className="mt-4 text-center text-sm text-gray-600">
+        Tap on any point to view or edit trade data
       </div>
     </div>
   );

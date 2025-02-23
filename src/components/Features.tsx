@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, BarChart2, TrendingUp, BookOpen } from 'lucide-react';
+import { CalendarDays, BarChart2, TrendingUp, BookOpenText } from 'lucide-react';
 
 interface Feature {
   icon: typeof Calendar;
@@ -15,7 +15,7 @@ interface FeaturesProps {
 export default function Features({ title, description }: FeaturesProps) {
   const features: Feature[] = [
     {
-      icon: Calendar,
+      icon: CalendarDays,
       title: 'Daily Tracking',
       description: 'Log your P/L every day with an intuitive calendar view. Track the grind, spot patterns, and stay accountable.',
     },
@@ -30,7 +30,7 @@ export default function Features({ title, description }: FeaturesProps) {
       description: 'Track win rate, trade count, profit/loss ratio, and other key stats that actually matter.',
     },
     {
-      icon: BookOpen,
+      icon: BookOpenText,
       title: 'Trading Journal',
       description: 'Keep receipts on your trades. Learn from your moves. Adjust. Improve.',
     },

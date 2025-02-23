@@ -7,4 +7,7 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  define: {
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(process.env.npm_package_version),
+  },
 });
