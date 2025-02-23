@@ -12,52 +12,31 @@ export default function PasswordReset() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-const handlePasswordReset = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    console.log("Updating password...");
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
 
-    // Detect if updateUser() is stuck
-    const response = await Promise.race([
-      supabase.auth.updateUser({ password: newPassword }),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Password updated!")), 5000)
-      ),
-    ]);
+      if (error) throw error;
 
-    console.log("Update response:", response);
-
-    // Refresh session to ensure state update
-    await supabase.auth.refreshSession();
-
-    if (response?.error) {
-      throw response.error;
+      toast.success('Password updated successfully!');
+      
+      // Short delay to ensure the toast is visible
+      setTimeout(() => {
+        navigate('/', { replace: true });
+      }, 1500);
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to reset password. Please try again.');
+    } finally {
+      setLoading(false);
     }
+  };
 
-    console.log("Password updated successfully!");
-
-    await toast.promise(
-      new Promise((resolve) => setTimeout(resolve, 2000)),
-      {
-        loading: "Updating password...",
-        success: "Password updated successfully!",
-        error: "Failed to update password",
-      }
-    );
-
-    console.log("Redirecting to home...");
-    navigate("/", { replace: true });
-  } catch (error) {
-    console.error("Error resetting password:", error);
-    toast.error(error instanceof Error ? error.message : "Failed to reset password.");
-  } finally {
-    console.log("Resetting loading state...");
-    setLoading(false);
-  }
-};
-  
   return (
     <div className="min-h-screen bg-yellow-50 px-4 py-8 md:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">

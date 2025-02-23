@@ -56,7 +56,7 @@ export default function ShareButton({ yearToDateStats }: ShareButtonProps) {
       setHasInitialized(true);
     } catch (error) {
       console.error('Error fetching/creating share URL:', error);
-      toast.error('Failed to generate share link');
+      toast.error('Failed to generate share link. Try again');
     } finally {
       setIsLoading(false);
     }
@@ -72,11 +72,11 @@ export default function ShareButton({ yearToDateStats }: ShareButtonProps) {
     try {
       await navigator.clipboard.writeText(shareUrl);
       setIsCopied(true);
-      toast.success('Share link copied to clipboard!');
+      toast.success('Share link copied to clipboard');
       setTimeout(() => setIsCopied(false), 2000);
     } catch (error) {
       console.error('Error copying to clipboard:', error);
-      toast.error('Failed to copy to clipboard');
+      toast.error('Failed to copy to clipboard. Try again');
     }
   };
 

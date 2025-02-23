@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import { BroadcastChannel } from 'broadcast-channel';
+import { createClient } from "@supabase/supabase-js";
+import { BroadcastChannel } from "broadcast-channel";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -8,11 +8,11 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const siteUrl = window.location.origin;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+  throw new Error("Missing Supabase environment variables");
 }
 
 // Create a broadcast channel for cross-tab communication
-export const authChannel = new BroadcastChannel('auth_channel');
+export const authChannel = new BroadcastChannel("auth_channel");
 
 // Custom fetch implementation with retries, exponential backoff, and auth handling
 const customFetch = async (url: string, options: any): Promise<Response> => {
@@ -23,8 +23,8 @@ const customFetch = async (url: string, options: any): Promise<Response> => {
     try {
       // Ensure auth header is present
       const headers = new Headers(options.headers);
-      if (!headers.has('apikey')) {
-        headers.set('apikey', supabaseAnonKey);
+      if (!headers.has("apikey")) {
+        headers.set("apikey", supabaseAnonKey);
       }
 
       const response = await fetch(url, {
@@ -35,9 +35,11 @@ const customFetch = async (url: string, options: any): Promise<Response> => {
       // Handle auth errors specifically
       if (response.status === 401 || response.status === 403) {
         // Try to refresh the session
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (session) {
-          headers.set('Authorization', `Bearer ${session.access_token}`);
+          headers.set("Authorization", `Bearer ${session.access_token}`);
           const retryResponse = await fetch(url, {
             ...options,
             headers,
@@ -47,8 +49,8 @@ const customFetch = async (url: string, options: any): Promise<Response> => {
           }
         }
         // Broadcast auth error to other tabs
-        authChannel.postMessage({ type: 'AUTH_ERROR' });
-        throw new Error('Authentication failed');
+        authChannel.postMessage({ type: "AUTH_ERROR" });
+        throw new Error("Authentication failed");
       }
 
       // Only retry on network errors or 5xx server errors
@@ -64,30 +66,30 @@ const customFetch = async (url: string, options: any): Promise<Response> => {
       }
 
       // Exponential backoff with jitter
-      const delay = baseDelay * Math.pow(2, attempt) * (0.5 + Math.random() * 0.5);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      const delay =
+        baseDelay * Math.pow(2, attempt) * (0.5 + Math.random() * 0.5);
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 
-  throw new Error('Max retries reached');
+  throw new Error("Max retries reached");
 };
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
-    storage: window.localStorage,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    flowType: 'pkce',
+    flowType: "implicit",
     debug: import.meta.env.DEV,
-    redirectTo: siteUrl,
-    storageKey: 'flippl.auth.token',
+    redirectTo: `${siteUrl}/auth/callback`,
+    storageKey: "flippl.auth.token",
     cookieOptions: {
-      name: 'flippl_auth',
+      name: "flippl_auth",
       domain: window.location.hostname,
-      sameSite: 'Lax',
-      secure: window.location.protocol === 'https:',
-      path: '/',
+      sameSite: "Lax",
+      secure: window.location.protocol === "https:",
+      path: "/",
     },
   },
   realtime: {
@@ -97,8 +99,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   global: {
     headers: {
-      'x-client-info': 'flippl-app',
-      'apikey': supabaseAnonKey,
+      "x-client-info": "flippl-app",
+      apikey: supabaseAnonKey,
     },
     fetch: customFetch,
   },
@@ -114,11 +116,11 @@ export const subscribeToTrades = (userId: string, onUpdate: () => void) => {
     const channel = supabase
       .channel(`trades_channel_${userId}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'trades',
+          event: "*",
+          schema: "public",
+          table: "trades",
           filter: `user_id=eq.${userId}`,
         },
         () => {
@@ -126,9 +128,9 @@ export const subscribeToTrades = (userId: string, onUpdate: () => void) => {
         }
       )
       .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
+        if (status === "SUBSCRIBED") {
           retryCount = 0;
-        } else if (status === 'CLOSED' && retryCount < maxRetries) {
+        } else if (status === "CLOSED" && retryCount < maxRetries) {
           const delay = baseDelay * Math.pow(2, retryCount);
           retryCount++;
           setTimeout(() => {
@@ -146,11 +148,14 @@ export const subscribeToTrades = (userId: string, onUpdate: () => void) => {
 // Helper function to check if there's a valid session
 export const checkSession = async () => {
   try {
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
     if (error) throw error;
     return { session, error: null };
   } catch (error) {
-    console.error('Error checking session:', error);
+    console.error("Error checking session:", error);
     return { session: null, error };
   }
 };
@@ -161,22 +166,22 @@ export const signOut = async () => {
     // First, remove all realtime subscriptions
     const { data: subscriptions } = await supabase.getSubscriptions();
     await Promise.all(
-      subscriptions.map(subscription => supabase.removeChannel(subscription))
+      subscriptions.map((subscription) => supabase.removeChannel(subscription))
     );
 
     // Clear local storage and broadcast channel
     localStorage.clear();
-    await authChannel.postMessage({ type: 'SIGN_OUT' });
+    await authChannel.postMessage({ type: "SIGN_OUT" });
 
     // Sign out from Supabase - only local scope to avoid 403 errors
     const { error } = await supabase.auth.signOut({
-      scope: 'local'
+      scope: "local",
     });
-    
+
     if (error) throw error;
     return { error: null };
   } catch (error) {
-    console.error('Error signing out:', error);
+    console.error("Error signing out:", error);
     return { error };
   }
 };
@@ -184,7 +189,7 @@ export const signOut = async () => {
 // Helper function to check Supabase connection
 export const checkConnection = async () => {
   try {
-    const { error } = await supabase.from('trades').select('count').limit(1);
+    const { error } = await supabase.from("trades").select("count").limit(1);
     return !error;
   } catch {
     return false;
@@ -198,7 +203,7 @@ export const retryOperation = async <T>(
   baseDelay = 1000
 ): Promise<T> => {
   let lastError: any;
-  
+
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       return await operation();
@@ -207,11 +212,11 @@ export const retryOperation = async <T>(
       if (attempt < maxRetries - 1) {
         const jitter = Math.random() * 0.5 + 0.5;
         const delay = baseDelay * Math.pow(2, attempt) * jitter;
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
   }
-  
+
   throw lastError;
 };
 

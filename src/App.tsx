@@ -29,6 +29,7 @@ import {
   retryOperation,
   authChannel,
 } from "./lib/supabase";
+import AuthCallback from "./components/AuthCallback";
 
 type View = "calendar" | "chart";
 
@@ -69,7 +70,7 @@ function App() {
       }));
     } catch (error) {
       console.error("Error fetching trades:", error);
-      toast.error("Failed to load trades. Please try again.");
+      toast.error("Failed to load trades. Try again");
       return [];
     }
   };
@@ -85,7 +86,7 @@ function App() {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session?.user) {
-        toast.error("Your session has expired. Please sign in again.");
+        toast.error("Your session has expired. Log in again");
         setIsAuthenticated(false);
         return;
       }
@@ -115,7 +116,7 @@ function App() {
       toast.success("Trade data saved successfully");
     } catch (error) {
       console.error("Error saving trade:", error);
-      toast.error("Failed to save trade data. Please try again.");
+      toast.error("Failed to save trade data. Try again");
     }
   };
 
@@ -125,7 +126,7 @@ function App() {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session?.user) {
-        toast.error("Your session has expired. Please sign in again.");
+        toast.error("Your session has expired. Log in again");
         setIsAuthenticated(false);
         return;
       }
@@ -142,7 +143,7 @@ function App() {
       toast.success("Trade deleted successfully");
     } catch (error) {
       console.error("Error deleting trade:", error);
-      toast.error("Failed to delete trade. Please try again.");
+      toast.error("Failed to delete trade. Try again");
     }
   };
 
@@ -336,7 +337,7 @@ function App() {
       toast.success("Trade data exported successfully");
     } catch (error) {
       console.error("Error exporting trade data:", error);
-      toast.error("Failed to export trade data");
+      toast.error("Failed to export trade data. Try again");
     }
   };
 
@@ -381,7 +382,6 @@ function App() {
                     setIsAuthenticated(true);
                     const trades = await fetchTradeData();
                     setTradeData(trades);
-                    toast.success("Signed in successfully");
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }
                 }}
@@ -507,6 +507,7 @@ function App() {
             )
           }
         />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/share/:shareId" element={<SharedSummary />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

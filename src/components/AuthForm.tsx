@@ -22,16 +22,17 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}`,
+          shouldCreateUser: true, // Auto-create user if not exists
+          emailRedirectTo: `${window.location.origin}/auth/callback`, // Ensure proper redirect
         },
       });
 
       if (error) throw error;
 
-      toast.success("Magic link sent! Check your email to log in.");
-    } catch (err) {
+      toast.success("Check your email for the magic link");
+    } catch (error) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to send magic link."
+        error instanceof Error ? error.message : "Failed to send magic link"
       );
     } finally {
       setLoading(false);
@@ -88,7 +89,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
                   disabled={loading}
                   className="neo-brutalist-blue w-full py-3 font-bold disabled:opacity-50"
                 >
-                  {loading ? "Sending Magic Link..." : "Send Magic Link"}
+                  {loading ? "Sending Magic Link..." : "Login via Magic Link"}
                 </button>
               </form>
             </div>
