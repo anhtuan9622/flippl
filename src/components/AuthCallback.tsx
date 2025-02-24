@@ -14,7 +14,7 @@ export default function AuthCallback() {
       const { data, error } = await supabase.auth.getSession();
 
       if (error || !data.session) {
-        toast.error("Logged in failed. Try again");
+        toast.error("Login failed. Please try again");
         navigate("/");
         hasShownToast.current = true; // Mark toast as shown
         return;
@@ -28,5 +28,11 @@ export default function AuthCallback() {
     handleSession();
   }, [navigate]);
 
-  return <p>Logging in...</p>;
+  return (
+    <div className="min-h-screen bg-yellow-50 flex items-center justify-center">
+      <div className="text-xl font-bold text-black neo-brutalist-white px-8 py-4">
+        Logging in...
+      </div>
+    </div>
+  );
 }

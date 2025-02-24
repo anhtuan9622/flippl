@@ -9,7 +9,7 @@ export default function Footer() {
       <div className="neo-brutalist-white p-6">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-sm font-medium text-gray-600">
-            © {new Date().getFullYear()} Flippl.app. All rights reserved. v
+            Flippl.app v
             {getVersion()}
           </div>
 

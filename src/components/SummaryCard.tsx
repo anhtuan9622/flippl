@@ -183,7 +183,7 @@ export default function SummaryCard({
   if (!tooltipText) return card;
 
   return (
-    <Tooltip.Provider delayDuration={100}>
+    <Tooltip.Provider delayDuration={400}>
       <Tooltip.Root open={isTooltipOpen} onOpenChange={setIsTooltipOpen}>
         <Tooltip.Trigger asChild>
           <button

@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { supabase } from "../lib/supabase";
 import toast from "react-hot-toast";
-import { Mail } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Header from "./Header";
 import Footer from "./Footer";
 import Features from "./Features";
+import { Link, useLocation } from "react-router-dom";
 
 interface AuthFormProps {
   onSuccess: () => void;
@@ -13,6 +14,8 @@ interface AuthFormProps {
 export default function AuthForm({ onSuccess }: AuthFormProps) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
+  const isAuthPage = location.pathname === "/auth";
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +41,67 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
       setLoading(false);
     }
   };
+
+  if (isAuthPage) {
+    return (
+      <div className="min-h-screen bg-yellow-50 px-4 py-8 md:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto">
+          <Header />
+
+          <div className="grid gap-8">
+            <div className="neo-brutalist-white p-8">
+              <div className="max-w-md mx-auto">
+                <h2 className="text-3xl font-black text-black mb-2 text-center">
+                  🔐 Sign In
+                </h2>
+                <p className="text-gray-600 mb-8 text-center">
+                  Continue with magic link or{" "}
+                  <Link to="/" className="text-blue-600 hover:text-blue-800 font-bold">
+                    try password-based login
+                  </Link>
+                </p>
+
+                <form onSubmit={handleMagicLink} className="space-y-6">
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-black text-black mb-2"
+                    >
+                      Email
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                      <input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="neo-input w-full pl-10"
+                        placeholder="anh@hoang.com"
+                        required
+                        minLength={5}
+                        maxLength={50}
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="neo-brutalist-blue w-full py-3 font-bold disabled:opacity-50"
+                  >
+                    {loading ? "Sending Magic Link..." : "Login via Magic Link"}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <Footer />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-yellow-50 px-4 py-8 md:px-6 lg:px-8">
@@ -91,6 +155,15 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
                 >
                   {loading ? "Sending Magic Link..." : "Login via Magic Link"}
                 </button>
+
+                {/* <div className="text-center">
+                  <Link
+                    to="/auth"
+                    className="text-blue-600 hover:text-blue-800 font-bold"
+                  >
+                    Or sign in with password
+                  </Link>
+                </div> */}
               </form>
             </div>
           </div>

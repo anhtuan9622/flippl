@@ -1,12 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { AlertTriangle } from 'lucide-react';
-import { format, parseISO, startOfYear, endOfMonth, isAfter, isBefore, addMonths, startOfMonth } from 'date-fns';
+import { 
+  format, 
+  parseISO, 
+  startOfYear, 
+  startOfMonth, 
+  startOfWeek,
+  endOfDay,
+  isSameDay,
+  isAfter
+} from 'date-fns';
 import { supabase } from '../lib/supabase';
 import Header from './Header';
 import Footer from './Footer';
 import AllTimeSummary from './AllTimeSummary';
-import { DayData } from '../types';
+import { TimePeriod } from './TimePeriodSelect';
 
 interface SharedProfile {
   id: string;
@@ -33,34 +42,6 @@ const maskEmail = (email: string) => {
   return `${maskedUsername}@${domain}`;
 };
 
-const calculateStats = (trades: any[]): SharedStats => {
-  if (!trades.length) {
-    return {
-      profit: 0,
-      trades: 0,
-      tradingDays: 0,
-      winRate: 0
-    };
-  }
-
-  const totalProfit = trades.reduce((sum, trade) => sum + (trade.profit || 0), 0);
-  const totalTrades = trades.reduce((sum, trade) => sum + (trade.trades_count || 0), 0);
-  const tradingDays = trades.length;
-  const profitableDays = trades.filter(trade => trade.profit > 0).length;
-  const winRate = tradingDays > 0 ? (profitableDays / tradingDays) * 100 : 0;
-    
-    // Add a threshold check for near-zero values
-    const EPSILON = 1e-10; // Threshold for considering a number as zero
-    const normalizedProfit = Math.abs(totalProfit) < EPSILON ? 0 : totalProfit;
-
-  return {
-    profit: normalizedProfit,
-    trades: totalTrades,
-    tradingDays,
-    winRate
-  };
-};
-
 export default function SharedSummary() {
   const { shareId } = useParams<{ shareId: string }>();
   const [profile, setProfile] = useState<SharedProfile | null>(null);
@@ -72,6 +53,8 @@ export default function SharedSummary() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('all-time');
+  const [tradeData, setTradeData] = useState<any[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -117,7 +100,7 @@ export default function SharedSummary() {
             share_id: profile.share_id,
             updated_at: profile.updated_at
           });
-          setStats(calculateStats(trades || []));
+          setTradeData(trades || []);
           setLoading(false);
         }
 
@@ -141,7 +124,7 @@ export default function SharedSummary() {
                 .order('date', { ascending: true });
 
               if (mounted && updatedTrades) {
-                setStats(calculateStats(updatedTrades));
+                setTradeData(updatedTrades);
               }
             }
           )
@@ -165,6 +148,63 @@ export default function SharedSummary() {
       }
     };
   }, [shareId]);
+
+  const calculateStats = (trades: any[], period: TimePeriod): SharedStats => {
+    const now = endOfDay(new Date());
+    let filteredTrades = [...trades];
+
+    switch (period) {
+      case 'year-to-date':
+        const yearStart = startOfYear(now);
+        filteredTrades = trades.filter(trade => {
+          const tradeDate = parseISO(trade.date);
+          return isAfter(tradeDate, yearStart) || isSameDay(tradeDate, yearStart);
+        });
+        break;
+      case 'month-to-date':
+        const monthStart = startOfMonth(now);
+        filteredTrades = trades.filter(trade => {
+          const tradeDate = parseISO(trade.date);
+          return isAfter(tradeDate, monthStart) || isSameDay(tradeDate, monthStart);
+        });
+        break;
+      case 'week-to-date':
+        const weekStart = startOfWeek(now, { weekStartsOn: 0 }); // Start week on Sunday
+        filteredTrades = trades.filter(trade => {
+          const tradeDate = parseISO(trade.date);
+          return isAfter(tradeDate, weekStart) || isSameDay(tradeDate, weekStart);
+        });
+        break;
+      default:
+        // all-time, no filtering needed
+        break;
+    }
+
+    if (!filteredTrades.length) {
+      return {
+        profit: 0,
+        trades: 0,
+        tradingDays: 0,
+        winRate: 0
+      };
+    }
+
+    const totalProfit = filteredTrades.reduce((sum, trade) => sum + (trade.profit || 0), 0);
+    const totalTrades = filteredTrades.reduce((sum, trade) => sum + (trade.trades_count || 0), 0);
+    const tradingDays = filteredTrades.length;
+    const profitableDays = filteredTrades.filter(trade => trade.profit > 0).length;
+    const winRate = tradingDays > 0 ? (profitableDays / tradingDays) * 100 : 0;
+    
+    const EPSILON = 1e-10;
+    const normalizedProfit = Math.abs(totalProfit) < EPSILON ? 0 : totalProfit;
+
+    return {
+      profit: normalizedProfit,
+      trades: totalTrades,
+      tradingDays,
+      winRate
+    };
+  };
 
   if (loading) {
     return (
@@ -208,11 +248,13 @@ export default function SharedSummary() {
         <Header />
 
         <AllTimeSummary
-          stats={stats}
-          title="All-Time Summary"
+          stats={calculateStats(tradeData, timePeriod)}
+          isLoading={loading}
+          timePeriod={timePeriod}
+          onTimePeriodChange={setTimePeriod}
           actions={
             <div className="text-sm font-medium text-gray-600">
-              Shared by {profile.email} • Last updated: {format(parseISO(profile.updated_at), 'MMM d, yyyy')}
+              Shared by {profile?.email} • Last updated: {profile?.updated_at ? format(parseISO(profile.updated_at), 'MMM d, yyyy') : ''}
             </div>
           }
         />

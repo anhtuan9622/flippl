@@ -59,7 +59,7 @@ export default function PasswordReset() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="neo-input w-full pl-10 pr-10"
-                    placeholder="Enter your new password"
+                    placeholder="******"
                     required
                     minLength={6}
                     maxLength={50}

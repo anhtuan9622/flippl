@@ -41,7 +41,7 @@ export default function Header({ showSignOut, onSignOut }: HeaderProps) {
               className="neo-brutalist-red px-4 py-2 font-bold text-white flex items-center gap-2 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
             >
               <LogOut className="w-4 h-4" />
-              Log Out
+              Sign Out
             </button>
           )}
         </div>

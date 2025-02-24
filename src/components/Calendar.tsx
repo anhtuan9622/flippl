@@ -25,8 +25,8 @@ export default function Calendar({
 }: CalendarProps) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
-  const calendarStart = startOfWeek(monthStart);
-  const calendarEnd = endOfWeek(monthEnd);
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 }); // Start week on Sunday (0)
+  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 }); // Keep consistent with start
 
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
