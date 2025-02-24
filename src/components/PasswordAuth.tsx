@@ -53,6 +53,31 @@ export default function PasswordAuth({ onSuccess }: PasswordAuthProps) {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+
+      if (error) throw error;
+
+      toast.success("Password reset link sent to your email");
+    } catch (error) {
+      console.error("Error sending reset email:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to send reset email"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-yellow-50 px-4 py-8 md:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
@@ -65,8 +90,8 @@ export default function PasswordAuth({ onSuccess }: PasswordAuthProps) {
             </h2>
             <p className="text-gray-600 mb-8 text-center">
               {isSignUp
-                ? "Join Flippl and start flipping your trades."
-                : "Enter your credentials to log in."}
+                ? "Join Flippl for free and start flipping your trades."
+                : "Enter your credentials to continue using Flippl."}
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -95,12 +120,24 @@ export default function PasswordAuth({ onSuccess }: PasswordAuthProps) {
               </div>
 
               <div>
+                <div className="flex justify-between items-center">
                 <label
                   htmlFor="password"
                   className="block text-sm font-black text-black mb-2"
                 >
                   Password
                 </label>
+
+              {!isSignUp && (
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-blue-600 hover:text-blue-800 font-bold text-sm mb-1"
+                >
+                  Forgot password?
+                </button>
+              )}
+                </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
                   <input
@@ -136,10 +173,10 @@ export default function PasswordAuth({ onSuccess }: PasswordAuthProps) {
               >
                 {loading
                   ? isSignUp
-                    ? "Creating Account..."
+                    ? "Signing Up..."
                     : "Logging In..."
                   : isSignUp
-                  ? "Create Account"
+                  ? "Sign Up"
                   : "Log In"}
               </button>
 
@@ -159,7 +196,7 @@ export default function PasswordAuth({ onSuccess }: PasswordAuthProps) {
                     to="/"
                     className="text-blue-600 hover:text-blue-800 font-bold"
                   >
-                    Or continue with magic link
+                    Or login via magic link
                   </Link>
                 </div>
               </div>

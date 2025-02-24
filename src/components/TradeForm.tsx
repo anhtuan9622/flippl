@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
-import { X, Trash2 } from 'lucide-react';
+import { X, Trash2, Save } from 'lucide-react';
 import { useEffect } from 'react';
 
 interface TradeFormProps {
@@ -144,9 +144,10 @@ export default function TradeForm({ date, existingTrade, onSave, onDelete, onClo
               </button>
               <button
                 type="submit"
-                className="neo-brutalist-blue px-4 py-2 font-bold"
+                className="neo-brutalist-blue px-4 py-2 font-bold flex items-center gap-2"
                 disabled={isSubmitting}
               >
+                <Save className="w-4 h-4" />
                 {isSubmitting ? 'Saving...' : 'Save'}
               </button>
             </div>

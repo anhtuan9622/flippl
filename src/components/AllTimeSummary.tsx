@@ -26,6 +26,25 @@ interface AllTimeSummaryProps {
   onTimePeriodChange?: (period: TimePeriod) => void;
 }
 
+const getStreakMessage = (days: number, startDate: Date, endDate: Date) => {
+  const dateRange = `(${format(startDate, 'MMM d, yyyy')} – ${format(endDate, 'MMM d, yyyy')})`;
+  const daysText = `${days} trading days`;
+  
+  if (days <= 3) {
+    return `Great start! You've won <span class="text-black text-semibold underline underline-offset-2 decoration-wavy decoration-yellow-400">${daysText}</span> straight ${dateRange}. Let's see how far you can go!`;
+  } else if (days <= 6) {
+    return `Solid streak! <span class="text-black text-semibold underline underline-offset-2 decoration-wavy decoration-yellow-400">${daysText}</span> in the green ${dateRange}. Stay focused!`;
+  } else if (days <= 10) {
+    return `Impressive! <span class="text-black text-semibold underline underline-offset-2 decoration-wavy decoration-yellow-400">${daysText}</span> winning streak ${dateRange}. Keep the momentum going!`;
+  } else if (days <= 15) {
+    return `Nice work! <span class="text-black text-semibold underline underline-offset-2 decoration-wavy decoration-yellow-400">${daysText}</span> in a row ${dateRange}. That takes skill!`;
+  } else if (days <= 20) {
+    return `You're on fire! <span class="text-black text-semibold underline underline-offset-2 decoration-wavy decoration-yellow-400">${daysText}</span> streak ${dateRange}. Keep stacking wins!`;
+  } else {
+    return `Legendary! <span class="text-black text-semibold underline underline-offset-2 decoration-wavy decoration-yellow-400">${daysText}</span> straight wins ${dateRange}. Pure consistency!`;
+  }
+};
+
 export default function AllTimeSummary({
   stats,
   title = "All-Time Summary",
@@ -96,7 +115,13 @@ export default function AllTimeSummary({
           <div className="flex justify-end">
             <div className="flex flex-wrap items-center gap-1 text-sm font-medium text-gray-600">
               <Flame className="w-4 h-4 text-red-500" />
-              Nice work! Your longest winning streak is <span className="text-black font-bold underline underline-offset-2 decoration-wavy decoration-yellow-400">{stats.longestStreak.days} trading days</span> ({format(stats.longestStreak.startDate, 'MMM d, yyyy')} – {format(stats.longestStreak.endDate, 'MMM d, yyyy')}).
+              <span dangerouslySetInnerHTML={{ 
+                __html: getStreakMessage(
+                  stats.longestStreak.days,
+                  stats.longestStreak.startDate,
+                  stats.longestStreak.endDate
+                )
+              }} />
             </div>
           </div>
         )}

@@ -127,13 +127,13 @@ export default function SummaryCard({
             : "flex flex-wrap items-center justify-between gap-1"
         }`}
       >
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-2 text-gray-600">
           <Icon className={size === "lg" ? "w-5 h-5" : "w-4 h-4"} />
           {label && (
             <p
               className={`${
                 size === "lg" ? "text-sm" : "text-xs"
-              } font-semibold`}
+              } font-medium`}
             >
               {label}
             </p>

@@ -46,6 +46,9 @@ export default function PasswordReset() {
             <h2 className="text-3xl font-black text-black mb-4 text-center">
               🔑 Reset Password
             </h2>
+            <p className="text-gray-600 mb-8 text-center">
+              Enter the new password you want to update.
+            </p>
             <form onSubmit={handlePasswordReset} className="space-y-6">
               <div>
                 <label htmlFor="newPassword" className="block text-sm font-black text-black mb-2">

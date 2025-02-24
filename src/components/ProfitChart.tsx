@@ -158,7 +158,7 @@ export default function ProfitChart({
           </div>
         </div>
       </div>
-      <div className="mt-4 text-center text-sm text-gray-600">
+      <div className="mt-4 text-center text-sm text-gray-600 font-medium">
         Tap on any point to view or edit trade data
       </div>
     </div>

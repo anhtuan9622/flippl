@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Mail } from "lucide-react";
 import * as Popover from "@radix-ui/react-popover";
 import Logo from "../assets/Logo";
+import EmailChangeModal from "./EmailChangeModal";
 
 interface HeaderProps {
   showSignOut?: boolean;
@@ -17,6 +18,7 @@ export default function Header({
 }: HeaderProps) {
   const location = useLocation();
   const isHomePage = location.pathname === "/";
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
   const LogoSection = () => (
     <div className="flex items-center gap-4">
@@ -65,7 +67,14 @@ export default function Header({
                           {userEmail}
                         </div>
                       </div>
-                      <div className="flex justify-end pt-4 pb-2 border-t-4 border-black">
+                      <div className="flex flex-wrap justify-end gap-2 pt-4 border-t-4 border-black">
+                        <button
+                          onClick={() => setIsEmailModalOpen(true)}
+                          className="neo-brutalist-blue px-4 py-2 font-bold text-white flex items-center justify-center gap-2"
+                        >
+                          <Mail className="w-4 h-4" />
+                          Change Email
+                        </button>
                         <button
                           onClick={onSignOut}
                           className="neo-brutalist-red px-4 py-2 font-bold text-white flex items-center justify-center gap-2"
@@ -83,6 +92,14 @@ export default function Header({
           )}
         </div>
       </div>
+
+      {userEmail && (
+        <EmailChangeModal
+          isOpen={isEmailModalOpen}
+          onClose={() => setIsEmailModalOpen(false)}
+          currentEmail={userEmail}
+        />
+      )}
     </div>
   );
 }

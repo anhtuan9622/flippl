@@ -37,6 +37,8 @@ import ShareButton from "./components/ShareButton";
 import SharedSummary from "./components/SharedSummary";
 import AllTimeSummary from "./components/AllTimeSummary";
 import AuthCallback from "./components/AuthCallback";
+import PasswordReset from "./components/PasswordReset";
+import ExportModal from "./components/ExportModal";
 import { DayData } from "./types";
 import { TimePeriod } from "./components/TimePeriodSelect";
 import {
@@ -59,6 +61,7 @@ function App() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("all-time");
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const fetchTradeData = useCallback(async () => {
     if (!userId) return [];
@@ -457,11 +460,9 @@ function App() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-
-      toast.success("Trade data exported successfully");
     } catch (error) {
       console.error("Error exporting trade data:", error);
-      toast.error("Failed to export trade data. Try again");
+      throw error;
     }
   };
 
@@ -527,7 +528,7 @@ function App() {
                     actions={
                       <>
                         <button
-                          onClick={handleExportCSV}
+                          onClick={() => setIsExportModalOpen(true)}
                           className="neo-brutalist-blue px-4 py-2 font-bold flex items-center gap-2"
                         >
                           <Download className="w-4 h-4" />
@@ -632,6 +633,12 @@ function App() {
                     onClose={() => setSelectedDate(null)}
                   />
                 )}
+
+                <ExportModal
+                  isOpen={isExportModalOpen}
+                  onClose={() => setIsExportModalOpen(false)}
+                  onExport={handleExportCSV}
+                />
               </div>
             )
           }
@@ -658,6 +665,7 @@ function App() {
           )
         } />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/auth/reset-password" element={<PasswordReset />} />
         <Route path="/share/:shareId" element={<SharedSummary />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

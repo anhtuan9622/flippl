@@ -156,14 +156,14 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
                   {loading ? "Sending Magic Link..." : "Login via Magic Link"}
                 </button>
 
-                {/* <div className="text-center">
+                <div className="text-center">
                   <Link
                     to="/auth"
                     className="text-blue-600 hover:text-blue-800 font-bold"
                   >
-                    Or sign in with password
+                    Or login with password
                   </Link>
-                </div> */}
+                </div>
               </form>
             </div>
           </div>

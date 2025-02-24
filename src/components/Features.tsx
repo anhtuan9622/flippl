@@ -64,7 +64,7 @@ export default function Features({ title, description }: FeaturesProps) {
         {features.map((feature, index) => (
           <div key={index} className="neo-brutalist-gray p-4">
             <div className="flex gap-4">
-              <div className="w-12 h-12 neo-brutalist-white flex items-center justify-center flex-shrink-0">
+              <div className="w-12 h-12 neo-brutalist-yellow text-black flex items-center justify-center flex-shrink-0">
                 <feature.icon className="w-6 h-6" />
               </div>
               <div>
@@ -76,6 +76,13 @@ export default function Features({ title, description }: FeaturesProps) {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="mt-8 flex flex-1 justify-center">
+        <video width="w-100" height="h-100" controls>
+          <source src="./demo.mp4" type="video/mp4">
+          </source>
+        </video>
       </div>
     </div>
   );
