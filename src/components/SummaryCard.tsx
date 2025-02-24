@@ -146,7 +146,7 @@ export default function SummaryCard({
             <>
               <p
                 className={`${
-                  size === "lg" ? "text-xl md:text-2xl lg:text-3xl" : "text-lg"
+                  size === "lg" ? "text-2xl lg:text-3xl" : "text-normal lg:text-lg"
                 } font-black ${
                   showTrend &&
                   (isNumber && value > 0

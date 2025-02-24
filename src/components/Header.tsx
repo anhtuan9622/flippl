@@ -1,14 +1,20 @@
 import React from "react";
-import { LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { LogOut, User } from "lucide-react";
+import * as Popover from "@radix-ui/react-popover";
 import Logo from "../assets/Logo";
 
 interface HeaderProps {
   showSignOut?: boolean;
   onSignOut?: () => void;
+  userEmail?: string;
 }
 
-export default function Header({ showSignOut, onSignOut }: HeaderProps) {
+export default function Header({
+  showSignOut,
+  onSignOut,
+  userEmail,
+}: HeaderProps) {
   const location = useLocation();
   const isHomePage = location.pathname === "/";
 
@@ -27,7 +33,7 @@ export default function Header({ showSignOut, onSignOut }: HeaderProps) {
   return (
     <div className="mb-8">
       <div className="neo-brutalist-white p-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
           {isHomePage ? (
             <LogoSection />
           ) : (
@@ -35,14 +41,45 @@ export default function Header({ showSignOut, onSignOut }: HeaderProps) {
               <LogoSection />
             </Link>
           )}
-          {showSignOut && onSignOut && (
-            <button
-              onClick={onSignOut}
-              className="neo-brutalist-red px-4 py-2 font-bold text-white flex items-center gap-2 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-            >
-              <LogOut className="w-4 h-4" />
-              Sign Out
-            </button>
+          {showSignOut && onSignOut && userEmail && (
+            <div className="flex justify-end">
+              <Popover.Root>
+                <Popover.Trigger asChild>
+                  <button className="neo-brutalist-yellow px-4 py-2 font-bold text-black flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Account
+                  </button>
+                </Popover.Trigger>
+                <Popover.Portal>
+                  <Popover.Content
+                    className="neo-brutalist-white p-4 z-50"
+                    sideOffset={8}
+                    align="end"
+                  >
+                    <div className="w-64 space-y-4">
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium text-gray-600">
+                          Logged in as
+                        </div>
+                        <div className="font-bold text-black break-all">
+                          {userEmail}
+                        </div>
+                      </div>
+                      <div className="flex justify-end pt-4 pb-2 border-t-4 border-black">
+                        <button
+                          onClick={onSignOut}
+                          className="neo-brutalist-red px-4 py-2 font-bold text-white flex items-center justify-center gap-2"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          Sign Out
+                        </button>
+                      </div>
+                    </div>
+                    <Popover.Arrow className="fill-black" />
+                  </Popover.Content>
+                </Popover.Portal>
+              </Popover.Root>
+            </div>
           )}
         </div>
       </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import * as Popover from '@radix-ui/react-popover';
-import { ChevronDown } from 'lucide-react';
+import { Clock, ChevronDown } from 'lucide-react';
 
 export type TimePeriod = 'all-time' | 'year-to-date' | 'month-to-date' | 'week-to-date';
 
@@ -11,9 +11,9 @@ interface TimePeriodSelectProps {
 
 const periods: { value: TimePeriod; label: string }[] = [
   { value: 'all-time', label: 'All-Time Summary' },
-  { value: 'year-to-date', label: 'Year-to-Date' },
-  { value: 'month-to-date', label: 'Month-to-Date' },
-  { value: 'week-to-date', label: 'Week-to-Date' },
+  { value: 'year-to-date', label: 'Year-to-Date Summary' },
+  { value: 'month-to-date', label: 'Month-to-Date Summary' },
+  { value: 'week-to-date', label: 'Week-to-Date Summary' },
 ];
 
 export default function TimePeriodSelect({ value, onChange }: TimePeriodSelectProps) {
@@ -24,13 +24,14 @@ export default function TimePeriodSelect({ value, onChange }: TimePeriodSelectPr
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
         <button className="flex items-center gap-2 neo-brutalist-yellow px-4 py-2 font-bold text-black">
+          <Clock className="w-4 h-4" />
           {selectedPeriod?.label}
           <ChevronDown className="w-4 h-4" />
         </button>
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
-          className="neo-brutalist-white p-2 w-48 z-50"
+          className="neo-brutalist-white p-2 z-50"
           sideOffset={8}
           align="start"
         >
@@ -45,7 +46,7 @@ export default function TimePeriodSelect({ value, onChange }: TimePeriodSelectPr
                 className={`px-3 py-2 text-left font-bold rounded-lg transition-colors ${
                   value === period.value
                     ? 'bg-yellow-400 text-black'
-                    : 'hover:bg-gray-100 text-black'
+                    : 'hover:bg-gray-200 text-black'
                 }`}
               >
                 {period.label}

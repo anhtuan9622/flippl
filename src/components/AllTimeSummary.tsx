@@ -96,7 +96,7 @@ export default function AllTimeSummary({
           <div className="flex justify-end">
             <div className="flex flex-wrap items-center gap-1 text-sm font-medium text-gray-600">
               <Flame className="w-4 h-4 text-red-500" />
-              Nice work! Your longest winning streak is <span className="text-black font-bold underline underline-offset-2 decoration-wavy decoration-yellow-500">{stats.longestStreak.days} trading days</span> ({format(stats.longestStreak.startDate, 'MMM d, yyyy')} – {format(stats.longestStreak.endDate, 'MMM d, yyyy')}).
+              Nice work! Your longest winning streak is <span className="text-black font-bold underline underline-offset-2 decoration-wavy decoration-yellow-400">{stats.longestStreak.days} trading days</span> ({format(stats.longestStreak.startDate, 'MMM d, yyyy')} – {format(stats.longestStreak.endDate, 'MMM d, yyyy')}).
             </div>
           </div>
         )}

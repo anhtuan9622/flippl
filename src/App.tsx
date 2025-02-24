@@ -56,6 +56,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [currentView, setCurrentView] = useState<View>("calendar");
   const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("all-time");
 
@@ -105,6 +106,7 @@ function App() {
 
         if (session?.user) {
           setUserId(session.user.id);
+          setUserEmail(session.user.email);
           setIsAuthenticated(true);
           const trades = await fetchTradeData();
           if (mounted) {
@@ -125,6 +127,7 @@ function App() {
         } else {
           if (mounted) {
             setUserId(null);
+            setUserEmail(null);
             setIsAuthenticated(false);
             setLoading(false);
             setIsInitialLoad(false);
@@ -134,6 +137,7 @@ function App() {
         console.error("Error in initializeAuth:", error);
         if (mounted) {
           setUserId(null);
+          setUserEmail(null);
           setIsAuthenticated(false);
           setLoading(false);
           setIsInitialLoad(false);
@@ -146,6 +150,7 @@ function App() {
     const handleAuthMessage = (msg: { type: string }) => {
       if (msg.type === "AUTH_ERROR" || msg.type === "SIGN_OUT") {
         setUserId(null);
+        setUserEmail(null);
         setIsAuthenticated(false);
         setTradeData([]);
       }
@@ -160,6 +165,7 @@ function App() {
 
       if (session?.user) {
         setUserId(session.user.id);
+        setUserEmail(session.user.email);
         setIsAuthenticated(true);
         const trades = await fetchTradeData();
         if (mounted) {
@@ -175,6 +181,7 @@ function App() {
         }
       } else {
         setUserId(null);
+        setUserEmail(null);
         setIsAuthenticated(false);
         setTradeData([]);
         setLoading(false);
@@ -495,6 +502,7 @@ function App() {
                   } = await supabase.auth.getSession();
                   if (session?.user) {
                     setUserId(session.user.id);
+                    setUserEmail(session.user.email);
                     setIsAuthenticated(true);
                     const trades = await fetchTradeData();
                     setTradeData(trades);
@@ -505,7 +513,11 @@ function App() {
             ) : (
               <div className="min-h-screen bg-yellow-50 px-4 py-8 md:px-6 lg:px-8">
                 <div className="max-w-6xl mx-auto">
-                  <Header showSignOut onSignOut={handleSignOut} />
+                  <Header 
+                    showSignOut 
+                    onSignOut={handleSignOut} 
+                    userEmail={userEmail || undefined}
+                  />
 
                   <AllTimeSummary
                     stats={calculateStats(tradeData, timePeriod)}
@@ -633,6 +645,7 @@ function App() {
                 } = await supabase.auth.getSession();
                 if (session?.user) {
                   setUserId(session.user.id);
+                  setUserEmail(session.user.email);
                   setIsAuthenticated(true);
                   const trades = await fetchTradeData();
                   setTradeData(trades);
