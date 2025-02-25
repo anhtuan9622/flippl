@@ -9,8 +9,7 @@ export default function Footer() {
       <div className="neo-brutalist-white p-6">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-sm font-medium text-gray-600">
-            Flippl.app v
-            {getVersion()}
+            Flippl.app v{getVersion()}
           </div>
 
           <div className="flex items-center gap-4">
@@ -28,7 +27,7 @@ export default function Footer() {
                 </Tooltip.Trigger>
                 <Tooltip.Portal>
                   <Tooltip.Content
-                    className="neo-brutalist-white px-3 py-2 text-sm font-bold text-black"
+                    className="neo-brutalist-yellow px-3 py-2 text-sm font-bold text-black"
                     sideOffset={5}
                   >
                     Email me
@@ -50,7 +49,7 @@ export default function Footer() {
                 </Tooltip.Trigger>
                 <Tooltip.Portal>
                   <Tooltip.Content
-                    className="neo-brutalist-white px-3 py-2 text-sm font-bold text-black"
+                    className="neo-brutalist-yellow px-3 py-2 text-sm font-bold text-black"
                     sideOffset={5}
                   >
                     Buy me a coffee

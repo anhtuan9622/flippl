@@ -35,7 +35,9 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
       toast.success("Check your email for the magic link");
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to send magic link"
+        error instanceof Error
+          ? error.message
+          : "Failed to send magic link. Try again"
       );
     } finally {
       setLoading(false);
@@ -56,7 +58,10 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
                 </h2>
                 <p className="text-gray-600 mb-8 text-center">
                   Continue with magic link or{" "}
-                  <Link to="/" className="text-blue-600 hover:text-blue-800 font-bold">
+                  <Link
+                    to="/"
+                    className="text-blue-600 hover:text-blue-800 font-bold"
+                  >
                     try password-based login
                   </Link>
                 </p>

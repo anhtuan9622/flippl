@@ -4,16 +4,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { supabase } from "../lib/supabase";
 import toast from "react-hot-toast";
 
-interface ShareButtonProps {
-  yearToDateStats: {
-    profit: number;
-    trades: number;
-    tradingDays: number;
-    winRate: number;
-  };
-}
-
-export default function ShareButton({ yearToDateStats }: ShareButtonProps) {
+export default function ShareButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
   const [isCopied, setIsCopied] = useState(false);
@@ -57,8 +48,11 @@ export default function ShareButton({ yearToDateStats }: ShareButtonProps) {
       setShareUrl(`${window.location.origin}/share/${finalShareId}`);
       setHasInitialized(true);
     } catch (error) {
-      console.error("Error fetching/creating share URL:", error);
-      toast.error("Failed to generate share link. Try again");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch or create share link. Try again"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -77,8 +71,11 @@ export default function ShareButton({ yearToDateStats }: ShareButtonProps) {
       toast.success("Share link copied to clipboard");
       setTimeout(() => setIsCopied(false), 2000);
     } catch (error) {
-      console.error("Error copying to clipboard:", error);
-      toast.error("Failed to copy to clipboard. Try again");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to copy share link. Try again"
+      );
     }
   };
 
@@ -87,7 +84,6 @@ export default function ShareButton({ yearToDateStats }: ShareButtonProps) {
       <Dialog.Trigger asChild>
         <button className="neo-brutalist-blue px-4 py-2 font-bold flex items-center gap-2">
           <Share2 className="w-4 h-4" />
-          Share
         </button>
       </Dialog.Trigger>
 

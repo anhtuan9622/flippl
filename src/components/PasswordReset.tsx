@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Lock, Eye, EyeOff } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { supabase } from '../lib/supabase';
-import Header from './Header';
-import Footer from './Footer';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Lock, Eye, EyeOff } from "lucide-react";
+import toast from "react-hot-toast";
+import { supabase } from "../lib/supabase";
+import Header from "./Header";
+import Footer from "./Footer";
 
 export default function PasswordReset() {
-  const [newPassword, setNewPassword] = useState('');
+  const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -16,26 +16,33 @@ export default function PasswordReset() {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
 
-      if (error) throw error;
-
-      toast.success('Password updated successfully!');
-      
-      // Short delay to ensure the toast is visible
-      setTimeout(() => {
-        navigate('/', { replace: true });
-      }, 1500);
-    } catch (error) {
-      console.error('Error resetting password:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to reset password. Please try again.');
-    } finally {
+    if (error) {
+      toast.error(error.message || "Failed to update password");
       setLoading(false);
+      return;
     }
+
+    setLoading(false);
   };
+
+  useEffect(() => {
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      async (event) => {
+        if (event === "USER_UPDATED") {
+          toast.success("Password updated successfully");
+          setTimeout(() => navigate("/"), 500);
+        }
+      }
+    );
+
+    return () => {
+      listener?.subscription?.unsubscribe();
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-yellow-50 px-4 py-8 md:px-6 lg:px-8">
@@ -51,7 +58,10 @@ export default function PasswordReset() {
             </p>
             <form onSubmit={handlePasswordReset} className="space-y-6">
               <div>
-                <label htmlFor="newPassword" className="block text-sm font-black text-black mb-2">
+                <label
+                  htmlFor="newPassword"
+                  className="block text-sm font-black text-black mb-2"
+                >
                   New Password
                 </label>
                 <div className="relative">
@@ -86,7 +96,7 @@ export default function PasswordReset() {
                 disabled={loading}
                 className="neo-brutalist-blue w-full py-3 font-bold disabled:opacity-50"
               >
-                {loading ? 'Updating...' : 'Update Password'}
+                {loading ? "Updating..." : "Update"}
               </button>
             </form>
           </div>

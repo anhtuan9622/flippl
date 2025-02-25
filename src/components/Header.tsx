@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LogOut, User, Mail } from "lucide-react";
+import { LogOut, User, Mail, ChevronDown } from "lucide-react";
 import * as Popover from "@radix-ui/react-popover";
 import Logo from "../assets/Logo";
 import EmailChangeModal from "./EmailChangeModal";
@@ -49,7 +49,7 @@ export default function Header({
                 <Popover.Trigger asChild>
                   <button className="neo-brutalist-yellow px-4 py-2 font-bold text-black flex items-center gap-2">
                     <User className="w-4 h-4" />
-                    Account
+                    <ChevronDown className="w-4 h-4" />
                   </button>
                 </Popover.Trigger>
                 <Popover.Portal>

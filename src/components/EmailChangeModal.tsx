@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { X, Mail, Save } from 'lucide-react';
-import * as Dialog from '@radix-ui/react-dialog';
-import { supabase } from '../lib/supabase';
-import toast from 'react-hot-toast';
+import React, { useEffect, useState } from "react";
+import { X, Mail, Save } from "lucide-react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { supabase } from "../lib/supabase";
+import toast from "react-hot-toast";
 
 interface EmailChangeModalProps {
   isOpen: boolean;
@@ -10,44 +10,60 @@ interface EmailChangeModalProps {
   currentEmail: string;
 }
 
-export default function EmailChangeModal({ isOpen, onClose, currentEmail }: EmailChangeModalProps) {
-  const [newEmail, setNewEmail] = useState('');
+export default function EmailChangeModal({
+  isOpen,
+  onClose,
+  currentEmail,
+}: EmailChangeModalProps) {
+  const [newEmail, setNewEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
 
-    try {
-      setIsSubmitting(true);
-      const { error } = await supabase.auth.updateUser({ 
-        email: newEmail 
-      });
+    if (currentEmail === newEmail) {
+      toast.error("New email should be different from current email");
+      return;
+    }
 
-      if (error) throw error;
+    setIsSubmitting(true);
 
-      setNewEmail('');
-      onClose();
-      // Show toast after modal is closed to ensure it's visible
-      setTimeout(() => {
-        toast.success("Check your new email for confirmation");
-      }, 100);
-    } catch (error) {
-      console.error("Error updating email:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update email"
-      );
-    } finally {
+    const { error } = await supabase.auth.updateUser({ email: newEmail });
+
+    if (error) {
+      toast.error(error.message || "Failed to update email");
       setIsSubmitting(false);
+      return;
     }
   };
 
-  // Reset form when modal is closed
+  useEffect(() => {
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      async (event) => {
+        if (event === "USER_UPDATED") {
+          handleClose();
+          setTimeout(
+            () => toast.success("Check your new email for confirmation"),
+            100
+          );
+        }
+      }
+    );
+
+    return () => {
+      listener?.subscription?.unsubscribe();
+    };
+  }, []);
+
+  // Reset form and close modal
   const handleClose = () => {
-    setNewEmail('');
+    setNewEmail("");
+    setIsSubmitting(false);
     onClose();
   };
 
+  console.log(isSubmitting, "isSubmitting");
   return (
     <Dialog.Root open={isOpen} onOpenChange={handleClose}>
       <Dialog.Portal>
@@ -79,7 +95,10 @@ export default function EmailChangeModal({ isOpen, onClose, currentEmail }: Emai
               </div>
 
               <div>
-                <label htmlFor="newEmail" className="block text-sm font-black text-black mb-2">
+                <label
+                  htmlFor="newEmail"
+                  className="block text-sm font-black text-black mb-2"
+                >
                   New Email
                 </label>
                 <div className="relative">
@@ -113,7 +132,7 @@ export default function EmailChangeModal({ isOpen, onClose, currentEmail }: Emai
                   disabled={isSubmitting}
                 >
                   <Save className="w-4 h-4" />
-                  {isSubmitting ? 'Updating...' : 'Update'}
+                  {isSubmitting ? "Updating..." : "Update"}
                 </button>
               </div>
             </form>

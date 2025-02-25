@@ -89,8 +89,9 @@ function App() {
         },
       }));
     } catch (error) {
-      console.error("Error fetching trades:", error);
-      toast.error("Failed to load trades. Try again");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to fetch trade data"
+      );
       return [];
     }
   }, [userId]);
@@ -137,7 +138,11 @@ function App() {
           }
         }
       } catch (error) {
-        console.error("Error in initializeAuth:", error);
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to initialize authentication"
+        );
         if (mounted) {
           setUserId(null);
           setUserEmail(null);
@@ -209,8 +214,9 @@ function App() {
       setTradeData([]);
       toast.success("Signed out successfully");
     } catch (error) {
-      console.error("Error signing out:", error);
-      toast.error("Failed to sign out");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to sign out. Try again"
+      );
     } finally {
       setLoading(false);
     }
@@ -256,8 +262,11 @@ function App() {
       setSelectedDate(null);
       toast.success("Trade data saved successfully");
     } catch (error) {
-      console.error("Error saving trade:", error);
-      toast.error("Failed to save trade data. Try again");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to save trade data. Try again"
+      );
     }
   };
 
@@ -283,8 +292,11 @@ function App() {
       setSelectedDate(null);
       toast.success("Trade deleted successfully");
     } catch (error) {
-      console.error("Error deleting trade:", error);
-      toast.error("Failed to delete trade. Try again");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete trade. Try again"
+      );
     }
   };
 
@@ -298,11 +310,13 @@ function App() {
     let longestEnd: Date | null = null;
 
     // Sort trades by date
-    const sortedTrades = [...trades].sort((a, b) => a.date.getTime() - b.date.getTime());
+    const sortedTrades = [...trades].sort(
+      (a, b) => a.date.getTime() - b.date.getTime()
+    );
 
     for (let i = 0; i < sortedTrades.length; i++) {
       const trade = sortedTrades[i];
-      
+
       if (trade.trades && trade.trades.profit > 0) {
         if (currentStreak === 0) {
           currentStart = trade.date;
@@ -334,22 +348,25 @@ function App() {
     let filteredTrades = [...trades];
 
     switch (period) {
-      case 'year-to-date':
+      case "year-to-date":
         const yearStart = startOfYear(now);
-        filteredTrades = trades.filter(trade => 
-          isAfter(trade.date, yearStart) || isSameDay(trade.date, yearStart)
+        filteredTrades = trades.filter(
+          (trade) =>
+            isAfter(trade.date, yearStart) || isSameDay(trade.date, yearStart)
         );
         break;
-      case 'month-to-date':
+      case "month-to-date":
         const monthStart = startOfMonth(now);
-        filteredTrades = trades.filter(trade => 
-          isAfter(trade.date, monthStart) || isSameDay(trade.date, monthStart)
+        filteredTrades = trades.filter(
+          (trade) =>
+            isAfter(trade.date, monthStart) || isSameDay(trade.date, monthStart)
         );
         break;
-      case 'week-to-date':
+      case "week-to-date":
         const weekStart = startOfWeek(now, { weekStartsOn: 0 }); // Start week on Sunday
-        filteredTrades = trades.filter(trade => 
-          isAfter(trade.date, weekStart) || isSameDay(trade.date, weekStart)
+        filteredTrades = trades.filter(
+          (trade) =>
+            isAfter(trade.date, weekStart) || isSameDay(trade.date, weekStart)
         );
         break;
       default:
@@ -403,13 +420,10 @@ function App() {
       (day) => day.trades && day.trades.profit > 0
     ).length;
     const monthWinRate =
-      monthTradingDays > 0
-        ? (monthProfitableDays / monthTradingDays) * 100
-        : 0;
+      monthTradingDays > 0 ? (monthProfitableDays / monthTradingDays) * 100 : 0;
 
     const EPSILON = 1e-10;
-    const normalizedProfit =
-      Math.abs(monthProfit) < EPSILON ? 0 : monthProfit;
+    const normalizedProfit = Math.abs(monthProfit) < EPSILON ? 0 : monthProfit;
 
     return {
       profit: normalizedProfit,
@@ -441,9 +455,7 @@ function App() {
         "Summary",
         `"Total Profit/Loss: ${stats.profit < 0 ? "-" : ""}$${Math.abs(
           stats.profit
-        ).toLocaleString()}, Total Trades: ${
-          stats.trades
-        }, Trading Days: ${
+        ).toLocaleString()}, Total Trades: ${stats.trades}, Trading Days: ${
           stats.tradingDays
         }, Win Rate: ${stats.winRate.toFixed(0)}%"`,
       ].join("\n");
@@ -461,8 +473,11 @@ function App() {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error exporting trade data:", error);
-      throw error;
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to export data. Try again"
+      );
     }
   };
 
@@ -514,9 +529,9 @@ function App() {
             ) : (
               <div className="min-h-screen bg-yellow-50 px-4 py-8 md:px-6 lg:px-8">
                 <div className="max-w-6xl mx-auto">
-                  <Header 
-                    showSignOut 
-                    onSignOut={handleSignOut} 
+                  <Header
+                    showSignOut
+                    onSignOut={handleSignOut}
                     userEmail={userEmail || undefined}
                   />
 
@@ -532,9 +547,13 @@ function App() {
                           className="neo-brutalist-blue px-4 py-2 font-bold flex items-center gap-2"
                         >
                           <Download className="w-4 h-4" />
-                          Export
                         </button>
-                        <ShareButton yearToDateStats={calculateStats(tradeData, timePeriod)} />
+                        <ShareButton
+                          yearToDateStats={calculateStats(
+                            tradeData,
+                            timePeriod
+                          )}
+                        />
                       </>
                     }
                   />
@@ -643,27 +662,30 @@ function App() {
             )
           }
         />
-        <Route path="/auth" element={
-          !isAuthenticated ? (
-            <PasswordAuth
-              onSuccess={async () => {
-                const {
-                  data: { session },
-                } = await supabase.auth.getSession();
-                if (session?.user) {
-                  setUserId(session.user.id);
-                  setUserEmail(session.user.email);
-                  setIsAuthenticated(true);
-                  const trades = await fetchTradeData();
-                  setTradeData(trades);
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }
-              }}
-            />
-          ) : (
-            <Navigate to="/" replace />
-          )
-        } />
+        <Route
+          path="/auth"
+          element={
+            !isAuthenticated ? (
+              <PasswordAuth
+                onSuccess={async () => {
+                  const {
+                    data: { session },
+                  } = await supabase.auth.getSession();
+                  if (session?.user) {
+                    setUserId(session.user.id);
+                    setUserEmail(session.user.email);
+                    setIsAuthenticated(true);
+                    const trades = await fetchTradeData();
+                    setTradeData(trades);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                }}
+              />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/auth/reset-password" element={<PasswordReset />} />
         <Route path="/share/:shareId" element={<SharedSummary />} />

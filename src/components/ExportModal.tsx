@@ -23,8 +23,11 @@ export default function ExportModal({
       onClose();
       toast.success("Trade data exported successfully");
     } catch (error) {
-      console.error("Error exporting data:", error);
-      toast.error("Failed to export trade data. Try again");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to export trade data. Try again"
+      );
     } finally {
       setIsExporting(false);
     }

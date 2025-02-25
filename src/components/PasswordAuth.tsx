@@ -44,9 +44,10 @@ export default function PasswordAuth({ onSuccess }: PasswordAuthProps) {
         onSuccess();
       }
     } catch (error) {
-      console.error("Auth error:", error);
       toast.error(
-        error instanceof Error ? error.message : "Authentication failed"
+        error instanceof Error
+          ? error.message
+          : "Authentication failed. Try again"
       );
     } finally {
       setLoading(false);
@@ -69,9 +70,10 @@ export default function PasswordAuth({ onSuccess }: PasswordAuthProps) {
 
       toast.success("Password reset link sent to your email");
     } catch (error) {
-      console.error("Error sending reset email:", error);
       toast.error(
-        error instanceof Error ? error.message : "Failed to send reset email"
+        error instanceof Error
+          ? error.message
+          : "Failed to send reset email. Try again"
       );
     } finally {
       setLoading(false);
@@ -121,22 +123,22 @@ export default function PasswordAuth({ onSuccess }: PasswordAuthProps) {
 
               <div>
                 <div className="flex justify-between items-center">
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-black text-black mb-2"
-                >
-                  Password
-                </label>
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-black text-black mb-2"
+                  >
+                    Password
+                  </label>
 
-              {!isSignUp && (
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="text-blue-600 hover:text-blue-800 font-bold text-sm mb-1"
-                >
-                  Forgot password?
-                </button>
-              )}
+                  {!isSignUp && (
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      className="text-blue-600 hover:text-blue-800 font-bold text-sm mb-1"
+                    >
+                      Forgot password?
+                    </button>
+                  )}
                 </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />

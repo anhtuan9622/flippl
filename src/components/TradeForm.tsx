@@ -1,7 +1,7 @@
-import React, { useState, useCallback } from 'react';
-import { format } from 'date-fns';
-import { X, Trash2, Save } from 'lucide-react';
-import { useEffect } from 'react';
+import React, { useState, useCallback } from "react";
+import { format } from "date-fns";
+import { X, Trash2, Save } from "lucide-react";
+import { useEffect } from "react";
 
 interface TradeFormProps {
   date: Date;
@@ -15,24 +15,34 @@ interface TradeFormProps {
   onClose: () => void;
 }
 
-export default function TradeForm({ date, existingTrade, onSave, onDelete, onClose }: TradeFormProps) {
-  const [profit, setProfit] = useState(existingTrade ? String(existingTrade.profit) : '');
-  const [trades, setTrades] = useState(existingTrade ? String(existingTrade.trades) : '');
+export default function TradeForm({
+  date,
+  existingTrade,
+  onSave,
+  onDelete,
+  onClose,
+}: TradeFormProps) {
+  const [profit, setProfit] = useState(
+    existingTrade ? String(existingTrade.profit) : ""
+  );
+  const [trades, setTrades] = useState(
+    existingTrade ? String(existingTrade.trades) : ""
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Handle escape key to close modal
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
   }, [onClose]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
-    
+
     try {
       setIsSubmitting(true);
       await onSave({
@@ -46,7 +56,7 @@ export default function TradeForm({ date, existingTrade, onSave, onDelete, onClo
 
   const handleDelete = useCallback(async () => {
     if (!existingTrade || !onDelete || isSubmitting) return;
-    
+
     try {
       setIsSubmitting(true);
       await onDelete(existingTrade.id);
@@ -61,19 +71,19 @@ export default function TradeForm({ date, existingTrade, onSave, onDelete, onClo
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       onClick={onClose}
     >
-      <div 
+      <div
         className="neo-brutalist-white p-6 w-full max-w-md"
         onClick={handleModalClick}
       >
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-black text-black">
-            {existingTrade ? 'Edit' : 'Add'} Trade Data
+            {existingTrade ? "Edit" : "Add"} Trade Data
             <div className="text-base font-bold text-gray-600">
-              {format(date, 'MMMM d, yyyy')}
+              {format(date, "MMMM d, yyyy")}
             </div>
           </h2>
           <button
@@ -84,7 +94,7 @@ export default function TradeForm({ date, existingTrade, onSave, onDelete, onClo
             <X className="w-5 h-5" />
           </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-black text-black mb-2">
@@ -103,7 +113,7 @@ export default function TradeForm({ date, existingTrade, onSave, onDelete, onClo
               disabled={isSubmitting}
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-black text-black mb-2">
               Number of Trades
@@ -120,7 +130,7 @@ export default function TradeForm({ date, existingTrade, onSave, onDelete, onClo
               disabled={isSubmitting}
             />
           </div>
-          
+
           <div className="flex justify-between gap-3 pt-4">
             {existingTrade && onDelete && (
               <button
@@ -130,7 +140,6 @@ export default function TradeForm({ date, existingTrade, onSave, onDelete, onClo
                 disabled={isSubmitting}
               >
                 <Trash2 className="w-4 h-4" />
-                Delete
               </button>
             )}
             <div className="flex gap-3 ml-auto">
@@ -148,7 +157,7 @@ export default function TradeForm({ date, existingTrade, onSave, onDelete, onClo
                 disabled={isSubmitting}
               >
                 <Save className="w-4 h-4" />
-                {isSubmitting ? 'Saving...' : 'Save'}
+                {isSubmitting ? "Saving..." : "Save"}
               </button>
             </div>
           </div>

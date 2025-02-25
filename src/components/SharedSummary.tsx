@@ -1,21 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { AlertTriangle } from 'lucide-react';
-import { 
-  format, 
-  parseISO, 
-  startOfYear, 
-  startOfMonth, 
+import React, { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import { AlertTriangle } from "lucide-react";
+import {
+  format,
+  parseISO,
+  startOfYear,
+  startOfMonth,
   startOfWeek,
   endOfDay,
   isSameDay,
-  isAfter
-} from 'date-fns';
-import { supabase } from '../lib/supabase';
-import Header from './Header';
-import Footer from './Footer';
-import AllTimeSummary from './AllTimeSummary';
-import { TimePeriod } from './TimePeriodSelect';
+  isAfter,
+} from "date-fns";
+import { supabase } from "../lib/supabase";
+import Header from "./Header";
+import Footer from "./Footer";
+import AllTimeSummary from "./AllTimeSummary";
+import { TimePeriod } from "./TimePeriodSelect";
 
 interface SharedProfile {
   id: string;
@@ -32,13 +32,14 @@ interface SharedStats {
 }
 
 const maskEmail = (email: string) => {
-  const [username, domain] = email.split('@');
+  const [username, domain] = email.split("@");
   if (!username || !domain) return email;
-  
-  const maskedUsername = username.length > 3
-    ? `${username.slice(0, 3)}${'*'.repeat(username.length - 3)}`
-    : username;
-  
+
+  const maskedUsername =
+    username.length > 3
+      ? `${username.slice(0, 3)}${"*".repeat(username.length - 3)}`
+      : username;
+
   return `${maskedUsername}@${domain}`;
 };
 
@@ -49,11 +50,11 @@ export default function SharedSummary() {
     profit: 0,
     trades: 0,
     tradingDays: 0,
-    winRate: 0
+    winRate: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>('all-time');
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>("all-time");
   const [tradeData, setTradeData] = useState<any[]>([]);
 
   useEffect(() => {
@@ -62,7 +63,7 @@ export default function SharedSummary() {
 
     const fetchSharedData = async () => {
       if (!shareId) {
-        setError('Invalid share link');
+        setError("Invalid share link");
         setLoading(false);
         return;
       }
@@ -70,35 +71,35 @@ export default function SharedSummary() {
       try {
         // Get profile data
         const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('share_id', shareId)
+          .from("profiles")
+          .select("*")
+          .eq("share_id", shareId)
           .single();
 
         if (profileError) {
-          console.error('Error fetching profile:', profileError);
-          throw new Error('Share link not found');
+          console.error("Error fetching profile:", profileError);
+          throw new Error("Share link not found");
         }
 
         if (!profile) {
-          throw new Error('Share link not found');
+          throw new Error("Share link not found");
         }
 
         // Get trades data
         const { data: trades, error: tradesError } = await supabase
-          .from('trades')
-          .select('*')
-          .eq('user_id', profile.id)
-          .order('date', { ascending: true });
+          .from("trades")
+          .select("*")
+          .eq("user_id", profile.id)
+          .order("date", { ascending: true });
 
         if (tradesError) throw tradesError;
 
         if (mounted) {
           setProfile({
             id: profile.id,
-            email: maskEmail(profile.email || 'Anonymous'),
+            email: maskEmail(profile.email || "Anonymous"),
             share_id: profile.share_id,
-            updated_at: profile.updated_at
+            updated_at: profile.updated_at,
           });
           setTradeData(trades || []);
           setLoading(false);
@@ -108,20 +109,20 @@ export default function SharedSummary() {
         subscription = supabase
           .channel(`trades_${profile.id}`)
           .on(
-            'postgres_changes',
+            "postgres_changes",
             {
-              event: '*',
-              schema: 'public',
-              table: 'trades',
+              event: "*",
+              schema: "public",
+              table: "trades",
               filter: `user_id=eq.${profile.id}`,
             },
             async () => {
               // Refetch trades on any change
               const { data: updatedTrades } = await supabase
-                .from('trades')
-                .select('*')
-                .eq('user_id', profile.id)
-                .order('date', { ascending: true });
+                .from("trades")
+                .select("*")
+                .eq("user_id", profile.id)
+                .order("date", { ascending: true });
 
               if (mounted && updatedTrades) {
                 setTradeData(updatedTrades);
@@ -129,11 +130,13 @@ export default function SharedSummary() {
             }
           )
           .subscribe();
-
       } catch (err) {
-        console.error('Error in fetchSharedData:', err);
         if (mounted) {
-          setError(err instanceof Error ? err.message : 'Failed to load shared summary');
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Failed to load shared summary. Try again"
+          );
           setLoading(false);
         }
       }
@@ -154,25 +157,31 @@ export default function SharedSummary() {
     let filteredTrades = [...trades];
 
     switch (period) {
-      case 'year-to-date':
+      case "year-to-date":
         const yearStart = startOfYear(now);
-        filteredTrades = trades.filter(trade => {
+        filteredTrades = trades.filter((trade) => {
           const tradeDate = parseISO(trade.date);
-          return isAfter(tradeDate, yearStart) || isSameDay(tradeDate, yearStart);
+          return (
+            isAfter(tradeDate, yearStart) || isSameDay(tradeDate, yearStart)
+          );
         });
         break;
-      case 'month-to-date':
+      case "month-to-date":
         const monthStart = startOfMonth(now);
-        filteredTrades = trades.filter(trade => {
+        filteredTrades = trades.filter((trade) => {
           const tradeDate = parseISO(trade.date);
-          return isAfter(tradeDate, monthStart) || isSameDay(tradeDate, monthStart);
+          return (
+            isAfter(tradeDate, monthStart) || isSameDay(tradeDate, monthStart)
+          );
         });
         break;
-      case 'week-to-date':
+      case "week-to-date":
         const weekStart = startOfWeek(now, { weekStartsOn: 0 }); // Start week on Sunday
-        filteredTrades = trades.filter(trade => {
+        filteredTrades = trades.filter((trade) => {
           const tradeDate = parseISO(trade.date);
-          return isAfter(tradeDate, weekStart) || isSameDay(tradeDate, weekStart);
+          return (
+            isAfter(tradeDate, weekStart) || isSameDay(tradeDate, weekStart)
+          );
         });
         break;
       default:
@@ -185,16 +194,24 @@ export default function SharedSummary() {
         profit: 0,
         trades: 0,
         tradingDays: 0,
-        winRate: 0
+        winRate: 0,
       };
     }
 
-    const totalProfit = filteredTrades.reduce((sum, trade) => sum + (trade.profit || 0), 0);
-    const totalTrades = filteredTrades.reduce((sum, trade) => sum + (trade.trades_count || 0), 0);
+    const totalProfit = filteredTrades.reduce(
+      (sum, trade) => sum + (trade.profit || 0),
+      0
+    );
+    const totalTrades = filteredTrades.reduce(
+      (sum, trade) => sum + (trade.trades_count || 0),
+      0
+    );
     const tradingDays = filteredTrades.length;
-    const profitableDays = filteredTrades.filter(trade => trade.profit > 0).length;
+    const profitableDays = filteredTrades.filter(
+      (trade) => trade.profit > 0
+    ).length;
     const winRate = tradingDays > 0 ? (profitableDays / tradingDays) * 100 : 0;
-    
+
     const EPSILON = 1e-10;
     const normalizedProfit = Math.abs(totalProfit) < EPSILON ? 0 : totalProfit;
 
@@ -202,14 +219,16 @@ export default function SharedSummary() {
       profit: normalizedProfit,
       trades: totalTrades,
       tradingDays,
-      winRate
+      winRate,
     };
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-yellow-50 flex items-center justify-center">
-        <div className="text-xl font-bold text-black neo-brutalist-white px-8 py-4">Loading...</div>
+        <div className="text-xl font-bold text-black neo-brutalist-white px-8 py-4">
+          Loading...
+        </div>
       </div>
     );
   }
@@ -254,15 +273,21 @@ export default function SharedSummary() {
           onTimePeriodChange={setTimePeriod}
           actions={
             <div className="text-sm font-medium text-gray-600">
-              Shared by {profile?.email} • Last updated: {profile?.updated_at ? format(parseISO(profile.updated_at), 'MMM d, yyyy') : ''}
+              Shared by {profile?.email} • Last updated:{" "}
+              {profile?.updated_at
+                ? format(parseISO(profile.updated_at), "MMM d, yyyy")
+                : ""}
             </div>
           }
         />
 
         <div className="neo-brutalist-white p-6 text-center">
           <p className="text-black font-medium">
-            Want to track your own trading performance?{' '}
-            <Link to="/" className="text-blue-600 hover:text-blue-800 font-bold">
+            Want to track your own trading performance?{" "}
+            <Link
+              to="/"
+              className="text-blue-600 hover:text-blue-800 font-bold"
+            >
               Sign up for free
             </Link>
           </p>
