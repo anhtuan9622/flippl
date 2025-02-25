@@ -112,17 +112,15 @@ export default function AllTimeSummary({
         </div>
 
         {stats.longestStreak && stats.longestStreak.days > 1 && (
-          <div className="flex justify-end">
-            <div className="flex flex-wrap items-center gap-1 text-sm font-medium text-gray-600">
-              <Flame className="w-4 h-4 text-red-500" />
-              <span dangerouslySetInnerHTML={{ 
-                __html: getStreakMessage(
-                  stats.longestStreak.days,
-                  stats.longestStreak.startDate,
-                  stats.longestStreak.endDate
-                )
-              }} />
-            </div>
+          <div className="flex justify-end items-center gap-1 text-sm font-medium text-gray-600">
+            <Flame className="w-8 h-8 md:w-4 md:h-4 text-red-500" />
+            <span dangerouslySetInnerHTML={{ 
+              __html: getStreakMessage(
+                stats.longestStreak.days,
+                stats.longestStreak.startDate,
+                stats.longestStreak.endDate
+              )
+            }} />
           </div>
         )}
       </div>

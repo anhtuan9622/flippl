@@ -78,10 +78,9 @@ export default function Features({ title, description }: FeaturesProps) {
         ))}
       </div>
 
-      <div className="mt-8 flex flex-1 justify-center">
+      <div className="neo-brutalist-gray mt-8 flex flex-1 justify-center">
         <video width="w-100" height="h-100" controls>
-          <source src="./demo.mp4" type="video/mp4">
-          </source>
+          <source src="https://res.cloudinary.com/dqasshvcu/video/upload/v1740450454/arcvktljixajljvmo2w5.mp4" type="video/mp4" />
         </video>
       </div>
     </div>
