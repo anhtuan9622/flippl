@@ -1,7 +1,7 @@
 {
   "name": "flippl",
   "private": true,
-  "version": "1.0.4",
+  "version": "1.0.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,7 +14,6 @@
     "@radix-ui/react-popover": "^1.0.7",
     "@radix-ui/react-tooltip": "^1.0.7",
     "@supabase/supabase-js": "^2.39.7",
-    "broadcast-channel": "^7.0.0",
     "chart.js": "^4.4.1",
     "date-fns": "^3.3.1",
     "lucide-react": "^0.344.0",

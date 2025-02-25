@@ -20,24 +20,47 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    let errorMessage = "";
 
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          shouldCreateUser: true, // Auto-create user if not exists
+          shouldCreateUser: false, // Don't auto-create user
           emailRedirectTo: `${window.location.origin}/auth/callback`, // Ensure proper redirect
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes("user_already_exists")) {
+          // User exists, send magic link without creating account
+          const { error: signInError } = await supabase.auth.signInWithOtp({
+            email,
+            options: {
+              emailRedirectTo: `${window.location.origin}/auth/callback`,
+            },
+          });
+          
+          if (signInError) throw signInError;
+        } else {
+          throw error;
+        }
+      }
 
       toast.success("Check your email for the magic link");
     } catch (error) {
+      errorMessage = error instanceof Error
+        ? error.message
+        : "Failed to send magic link. Try again";
+        
+      // Clean up common error messages
+      errorMessage = errorMessage
+        .replace("Failed to send magic link:", "")
+        .replace("AuthApiError:", "")
+        .trim();
+        
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to send magic link. Try again"
+        errorMessage
       );
     } finally {
       setLoading(false);

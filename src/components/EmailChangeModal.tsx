@@ -63,7 +63,6 @@ export default function EmailChangeModal({
     onClose();
   };
 
-  console.log(isSubmitting, "isSubmitting");
   return (
     <Dialog.Root open={isOpen} onOpenChange={handleClose}>
       <Dialog.Portal>

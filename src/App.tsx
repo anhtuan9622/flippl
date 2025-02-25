@@ -12,7 +12,6 @@ import {
   endOfDay,
   isSameDay,
   isAfter,
-  addDays,
 } from "date-fns";
 import {
   ChevronLeft,
@@ -39,14 +38,8 @@ import AllTimeSummary from "./components/AllTimeSummary";
 import AuthCallback from "./components/AuthCallback";
 import PasswordReset from "./components/PasswordReset";
 import ExportModal from "./components/ExportModal";
-import { DayData } from "./types";
 import { TimePeriod } from "./components/TimePeriodSelect";
-import {
-  supabase,
-  subscribeToTrades,
-  retryOperation,
-  authChannel,
-} from "./lib/supabase";
+import { supabase, safeGetSession } from "./lib/supabase";
 
 type View = "calendar" | "chart";
 
@@ -67,18 +60,15 @@ function App() {
     if (!userId) return [];
 
     try {
-      const trades = await retryOperation(async () => {
-        const { data, error } = await supabase
-          .from("trades")
-          .select("*")
-          .eq("user_id", userId)
-          .order("date", { ascending: true });
+      const { data, error } = await supabase
+        .from("trades")
+        .select("*")
+        .eq("user_id", userId)
+        .order("date", { ascending: true });
 
-        if (error) throw error;
-        return data || [];
-      });
+      if (error) throw error;
 
-      return trades.map((trade) => ({
+      return (data || []).map((trade) => ({
         date: parseISO(trade.date),
         trades: {
           id: trade.id,
@@ -89,23 +79,64 @@ function App() {
         },
       }));
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to fetch trade data"
-      );
+      console.log("Fetch trade data error:", error);
+      toast.error("Failed to fetch trade data");
       return [];
     }
   }, [userId]);
 
   useEffect(() => {
     let mounted = true;
-    let tradesSubscription: ReturnType<typeof subscribeToTrades>;
+    let pollInterval: number | null = null;
 
-    const initializeAuth = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+    const initializeAuth = () => {
+      setTimeout(async () => {
+        try {
+          const { session } = await safeGetSession();
 
+          if (!mounted) return;
+
+          if (session?.user) {
+            setUserId(session.user.id);
+            setUserEmail(session.user.email);
+            setIsAuthenticated(true);
+            const trades = await fetchTradeData();
+            if (mounted) {
+              setTradeData(trades);
+              setLoading(false);
+              setIsInitialLoad(false);
+
+              // Set up polling interval
+              pollInterval = window.setInterval(async () => {
+                if (mounted) {
+                  const updatedTrades = await fetchTradeData();
+                  setTradeData(updatedTrades);
+                }
+              }, 30000);
+            }
+          } else {
+            if (mounted) {
+              setUserId(null);
+              setUserEmail(null);
+              setIsAuthenticated(false);
+              setLoading(false);
+              setIsInitialLoad(false);
+            }
+          }
+        } catch (error) {
+          console.error("Auth init error:", error);
+          toast.error("Auth init error. Try again");
+        }
+      }, 0);
+    };
+
+    initializeAuth();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // Queue this for the next event loop to avoid deadlocks
+      setTimeout(async () => {
         if (!mounted) return;
 
         if (session?.user) {
@@ -116,95 +147,67 @@ function App() {
           if (mounted) {
             setTradeData(trades);
             setLoading(false);
-            setIsInitialLoad(false);
-
-            tradesSubscription = subscribeToTrades(
-              session.user.id,
-              async () => {
-                const updatedTrades = await fetchTradeData();
-                if (mounted) {
-                  setTradeData(updatedTrades);
-                }
-              }
-            );
           }
         } else {
-          if (mounted) {
-            setUserId(null);
-            setUserEmail(null);
-            setIsAuthenticated(false);
-            setLoading(false);
-            setIsInitialLoad(false);
-          }
-        }
-      } catch (error) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Failed to initialize authentication"
-        );
-        if (mounted) {
           setUserId(null);
           setUserEmail(null);
           setIsAuthenticated(false);
+          setTradeData([]);
           setLoading(false);
-          setIsInitialLoad(false);
         }
-      }
-    };
-
-    initializeAuth();
-
-    const handleAuthMessage = (msg: { type: string }) => {
-      if (msg.type === "AUTH_ERROR" || msg.type === "SIGN_OUT") {
-        setUserId(null);
-        setUserEmail(null);
-        setIsAuthenticated(false);
-        setTradeData([]);
-      }
-    };
-
-    authChannel.addEventListener("message", handleAuthMessage);
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
-
-      if (session?.user) {
-        setUserId(session.user.id);
-        setUserEmail(session.user.email);
-        setIsAuthenticated(true);
-        const trades = await fetchTradeData();
-        if (mounted) {
-          setTradeData(trades);
-          setLoading(false);
-
-          tradesSubscription = subscribeToTrades(session.user.id, async () => {
-            const updatedTrades = await fetchTradeData();
-            if (mounted) {
-              setTradeData(updatedTrades);
-            }
-          });
-        }
-      } else {
-        setUserId(null);
-        setUserEmail(null);
-        setIsAuthenticated(false);
-        setTradeData([]);
-        setLoading(false);
-      }
+      }, 0);
     });
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
-      if (tradesSubscription) {
-        tradesSubscription.unsubscribe();
+      if (typeof pollInterval === "number") {
+        window.clearInterval(pollInterval);
       }
-      authChannel.removeEventListener("message", handleAuthMessage);
     };
   }, [fetchTradeData]);
+
+  useEffect(() => {
+    const handleTokenRefresh = (event) => {
+      // Safely handle token refresh outside of Supabase callbacks
+      setTimeout(async () => {
+        console.log("Token refresh detected in component");
+
+        if (userId) {
+          try {
+            // Optionally get the latest session data
+            const { session } = await safeGetSession();
+
+            if (session?.user) {
+              // Only update if the values are different
+              if (session.user.id !== userId) {
+                setUserId(session.user.id);
+              }
+
+              if (session.user.email !== userEmail) {
+                setUserEmail(session.user.email);
+              }
+            }
+
+            // Refresh data after token refresh
+            const trades = await fetchTradeData();
+            setTradeData(trades);
+          } catch (error) {
+            console.error("Error handling token refresh:", error);
+          }
+        }
+      }, 0);
+    };
+
+    window.addEventListener("supabase:token-refreshed", handleTokenRefresh);
+
+    return () => {
+      window.removeEventListener(
+        "supabase:token-refreshed",
+        handleTokenRefresh
+      );
+    };
+  }, [userId, userEmail, fetchTradeData]);
 
   const handleSignOut = async () => {
     setLoading(true);
@@ -214,9 +217,8 @@ function App() {
       setTradeData([]);
       toast.success("Signed out successfully");
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to sign out. Try again"
-      );
+      console.error("Failed to sign out:", error);
+      toast.error("Failed to sign out. Try again");
     } finally {
       setLoading(false);
     }
@@ -229,9 +231,8 @@ function App() {
     if (!selectedDate) return;
 
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await safeGetSession();
+
       if (!session?.user) {
         toast.error("Your session has expired. Log in again");
         setIsAuthenticated(false);
@@ -240,63 +241,52 @@ function App() {
 
       const formattedDate = format(selectedDate, "yyyy-MM-dd");
 
-      await retryOperation(async () => {
-        const { error } = await supabase.from("trades").upsert(
-          {
-            user_id: session.user.id,
-            date: formattedDate,
-            profit: data.profit,
-            trades_count: data.trades,
-          },
-          {
-            onConflict: "user_id,date",
-            ignoreDuplicates: false,
-          }
-        );
+      const { error } = await supabase.from("trades").upsert(
+        {
+          user_id: session.user.id,
+          date: formattedDate,
+          profit: data.profit,
+          trades_count: data.trades,
+        },
+        {
+          onConflict: "user_id,date",
+          ignoreDuplicates: false,
+        }
+      );
 
-        if (error) throw error;
-      });
+      if (error) throw error;
 
       const updatedTrades = await fetchTradeData();
       setTradeData(updatedTrades);
       setSelectedDate(null);
       toast.success("Trade data saved successfully");
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to save trade data. Try again"
-      );
+      console.error("Failed to save trade data:", error);
+      toast.error("Failed to save trade data. Try again");
     }
   };
 
   const handleDeleteTrade = async (id: string) => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { session } = await safeGetSession();
+
       if (!session?.user) {
         toast.error("Your session has expired. Log in again");
         setIsAuthenticated(false);
         return;
       }
 
-      await retryOperation(async () => {
-        const { error } = await supabase.from("trades").delete().match({ id });
+      const { error } = await supabase.from("trades").delete().match({ id });
 
-        if (error) throw error;
-      });
+      if (error) throw error;
 
       const updatedTrades = await fetchTradeData();
       setTradeData(updatedTrades);
       setSelectedDate(null);
-      toast.success("Trade deleted successfully");
+      toast.success("Trade data deleted successfully");
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to delete trade. Try again"
-      );
+      console.error("Failed to delete trade:", error);
+      toast.error("Failed to delete trade. Try again");
     }
   };
 
@@ -473,11 +463,8 @@ function App() {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to export data. Try again"
-      );
+      console.error("Failed to export data:", error);
+      toast.error("Failed to export data. Try again");
     }
   };
 
@@ -512,18 +499,24 @@ function App() {
           element={
             !isAuthenticated ? (
               <AuthForm
-                onSuccess={async () => {
-                  const {
-                    data: { session },
-                  } = await supabase.auth.getSession();
-                  if (session?.user) {
-                    setUserId(session.user.id);
-                    setUserEmail(session.user.email);
-                    setIsAuthenticated(true);
-                    const trades = await fetchTradeData();
-                    setTradeData(trades);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }
+                onSuccess={() => {
+                  setTimeout(async () => {
+                    try {
+                      const { session } = await safeGetSession();
+
+                      if (session?.user) {
+                        setUserId(session.user.id);
+                        setUserEmail(session.user.email);
+                        setIsAuthenticated(true);
+                        const trades = await fetchTradeData();
+                        setTradeData(trades);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }
+                    } catch (error) {
+                      console.error("Authentication error:", error);
+                      toast.error("Authentication error. Try again");
+                    }
+                  }, 0);
                 }}
               />
             ) : (
@@ -667,18 +660,25 @@ function App() {
           element={
             !isAuthenticated ? (
               <PasswordAuth
-                onSuccess={async () => {
-                  const {
-                    data: { session },
-                  } = await supabase.auth.getSession();
-                  if (session?.user) {
-                    setUserId(session.user.id);
-                    setUserEmail(session.user.email);
-                    setIsAuthenticated(true);
-                    const trades = await fetchTradeData();
-                    setTradeData(trades);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }
+                onSuccess={() => {
+                  // Use setTimeout to avoid deadlocks with Supabase auth
+                  setTimeout(async () => {
+                    try {
+                      const { session } = await safeGetSession();
+
+                      if (session?.user) {
+                        setUserId(session.user.id);
+                        setUserEmail(session.user.email);
+                        setIsAuthenticated(true);
+                        const trades = await fetchTradeData();
+                        setTradeData(trades);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }
+                    } catch (error) {
+                      console.error("Authentication error:", error);
+                      toast.error("Authentication error. Try again");
+                    }
+                  }, 0);
                 }}
               />
             ) : (
