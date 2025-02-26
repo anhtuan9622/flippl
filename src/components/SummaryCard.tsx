@@ -109,7 +109,7 @@ export default function SummaryCard({
   const LoadingPlaceholder = () => (
     <div className="animate-pulse">
       <div
-        className={`h-${size === "lg" ? "8" : "6"} bg-gray-200 rounded-lg w-24`}
+        className={`h-${size === "lg" ? "8" : "6"} bg-gray-100 rounded-lg w-24`}
       ></div>
     </div>
   );

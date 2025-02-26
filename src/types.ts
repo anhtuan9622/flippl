@@ -4,6 +4,7 @@ export interface TradeEntry {
   profit: number;
   trades: number;
   winRate: number;
+  entry_mode?: 'manual' | 'detailed';
 }
 
 export interface DayData {
