@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Share2, Check, Copy } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import Button from "../ui/Button";
+import Input from "../ui/Input";
 import { supabase } from "../../lib/supabase";
 import toast from "react-hot-toast";
 
@@ -100,12 +101,11 @@ export default function ShareModal() {
                 automatically show your latest data.
               </p>
 
-              <div className="flex gap-2">
-                <input
+              <div className="w-full">
+                <Input
                   type="text"
                   value={isLoading ? "Generating share link..." : shareUrl}
                   readOnly
-                  className="neo-input flex-1"
                   placeholder={
                     isLoading
                       ? "Generating share link..."

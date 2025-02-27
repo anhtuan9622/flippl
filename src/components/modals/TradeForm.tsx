@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { format } from 'date-fns';
 import { X, Trash2, Save, List, DollarSign, BarChart2 } from 'lucide-react';
 import Button from '../ui/Button';
+import Input from '../ui/Input';
 import toast from 'react-hot-toast';
 import { useTradeEntries } from '../../hooks/useTradeEntries';
 import { TradeEntryData } from '../../types';
@@ -414,57 +415,43 @@ export default function TradeForm({
           {!isDetailedMode ? (
             <div className="gap-8 grid-cols grid md:grid-cols-2">
               <div className="space-y-4">
-                <label className="text-sm font-black text-black">
-                  Profit/Loss ($)
-                </label>
-                <div className="space-y-1">
-                  <input
+                <div>
+                  <Input
                     type="number"
                     value={profit}
                     onChange={(e) => {
                       setProfit(e.target.value);
                       setErrors(prev => ({ ...prev, profit: undefined }));
                     }}
-                    className={`neo-input w-full ${errors.profit ? 'border-red-500 focus:border-red-500' : ''}`}
+                    label="Profit/Loss ($)"
                     placeholder="Enter amount (negative for losses)"
                     required
                     disabled={isSubmitting}
                     max="100000000"
                     min="-100000000"
                     step="any"
+                    error={errors.profit}
+                    icon={DollarSign}
                   />
-                  {errors.profit && (
-                    <div className="text-sm text-red-600 font-medium">
-                      {errors.profit}
-                    </div>
-                  )}
                 </div>
-              </div>
 
-              <div className="space-y-4">
-                <label className="text-sm font-black text-black">
-                  Number of Trades
-                </label>
-                <div className="space-y-1">
-                  <input
+                <div>
+                  <Input
                     type="number"
                     value={trades}
                     onChange={(e) => {
                       setTrades(e.target.value);
                       setErrors(prev => ({ ...prev, trades: undefined }));
                     }}
-                    className={`neo-input w-full ${errors.trades ? 'border-red-500 focus:border-red-500' : ''}`}
+                    label="Number of Trades"
                     placeholder="Enter number of trades"
                     required
                     disabled={isSubmitting}
                     min="1"
                     max="1000000"
+                    error={errors.trades}
+                    icon={BarChart2}
                   />
-                  {errors.trades && (
-                    <div className="text-sm text-red-600 font-medium">
-                      {errors.trades}
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -491,90 +478,62 @@ export default function TradeForm({
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-black text-black">
-                      Symbol
-                    </label>
-                    <div className="space-y-1">
-                      <input
-                        type="text"
-                        name="symbol"
-                        value={currentEntry.symbol}
-                        onChange={handleInputChange}
-                        className={`neo-input w-full ${errors.symbol ? 'border-red-500 focus:border-red-500' : ''}`}
-                        placeholder="AAPL"
-                        maxLength={10}
-                        disabled={isSubmitting}
-                      />
-                      {errors.symbol && (
-                        <div className="text-sm text-red-600 font-medium">
-                          {errors.symbol}
-                        </div>
-                      )}
-                    </div>
+                    <Input
+                      type="text"
+                      name="symbol"
+                      value={currentEntry.symbol}
+                      onChange={handleInputChange}
+                      label="Symbol"
+                      placeholder="AAPL"
+                      maxLength={10}
+                      disabled={isSubmitting}
+                      error={errors.symbol}
+                    />
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-black text-black">
-                      Quantity
-                    </label>
-                    <div className="space-y-1">
-                      <input
-                        type="number"
-                        name="quantity"
-                        value={currentEntry.quantity || ''}
-                        onChange={handleInputChange}
-                        className={`neo-input w-full ${errors.quantity ? 'border-red-500 focus:border-red-500' : ''}`}
-                        placeholder="100"
-                        min="0.00000001"
-                        step="0.00000001"
-                        disabled={isSubmitting}
-                      />
-                      {errors.quantity && (
-                        <div className="text-sm text-red-600 font-medium">
-                          {errors.quantity}
-                        </div>
-                      )}
-                    </div>
+                    <Input
+                      type="number"
+                      name="quantity"
+                      value={currentEntry.quantity || ''}
+                      onChange={handleInputChange}
+                      label="Quantity"
+                      placeholder="100"
+                      min="0.00000001"
+                      step="0.00000001"
+                      disabled={isSubmitting}
+                      error={errors.quantity}
+                    />
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-black text-black">
-                      Price ($)
-                    </label>
-                    <div className="space-y-1">
-                      <input
-                        type="number"
-                        name="price"
-                        value={currentEntry.price || ''}
-                        onChange={handleInputChange}
-                        className={`neo-input w-full ${errors.price ? 'border-red-500 focus:border-red-500' : ''}`}
-                        placeholder="150.00"
-                        min="0.00000001"
-                        step="0.00000001"
-                        disabled={isSubmitting}
-                      />
-                      {errors.price && (
-                        <div className="text-sm text-red-600 font-medium">
-                          {errors.price}
-                        </div>
-                      )}
-                    </div>
+                    <Input
+                      type="number"
+                      name="price"
+                      value={currentEntry.price || ''}
+                      onChange={handleInputChange}
+                      label="Price ($)"
+                      placeholder="150.00"
+                      min="0.00000001"
+                      step="0.00000001"
+                      disabled={isSubmitting}
+                      error={errors.price}
+                      icon={DollarSign}
+                    />
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-black text-black">
-                      Commission ($)
-                    </label>
-                    <input
+                    <Input
                       type="number"
                       name="commission"
                       value={currentEntry.commission || ''}
                       onChange={handleInputChange}
-                      className="neo-input w-full"
+                      label="Commission ($)"
                       placeholder="0.00"
                       min="0"
                       step="0.01"
                       disabled={isSubmitting}
+                      icon={DollarSign}
                     />
                   </div>
 

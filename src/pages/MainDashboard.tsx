@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { format, addMonths, subMonths, isSameMonth } from 'date-fns';
-import toast from 'react-hot-toast';
+import React, { useState } from "react";
+import { format, addMonths, subMonths, isSameMonth } from "date-fns";
+import toast from "react-hot-toast";
 import {
   ChevronLeft,
   ChevronRight,
@@ -9,26 +9,29 @@ import {
   CalendarDays,
   Percent,
   Download,
-} from 'lucide-react';
-import Button from '../components/ui/Button';
-import { DayData } from '../types';
-import { calculateMonthStats, calculateStats } from '../utils/stats';
-import { TimePeriod } from '../components/TimePeriodSelect';
-import Calendar from '../components/Calendar';
-import TradeForm from '../components/modals/TradeForm';
-import ShareModal from '../components/modals/ShareModal';
-import ProfitChart from '../components/ProfitChart';
-import SummaryCard from '../components/SummaryCard';
-import ViewToggle from '../components/ViewToggle';
-import AppLayout from '../components/layout/AppLayout';
-import AllTimeSummary from '../components/layout/AllTimeSummary';
-import ExportModal from '../components/modals/ExportModal';
+} from "lucide-react";
+import Button from "../components/ui/Button";
+import { DayData } from "../types";
+import { calculateMonthStats, calculateStats } from "../utils/stats";
+import { TimePeriod } from "../components/TimePeriodSelect";
+import Calendar from "../components/Calendar";
+import TradeForm from "../components/modals/TradeForm";
+import ShareModal from "../components/modals/ShareModal";
+import ProfitChart from "../components/ProfitChart";
+import SummaryCard from "../components/SummaryCard";
+import ViewToggle from "../components/ViewToggle";
+import AppLayout from "../components/layout/AppLayout";
+import AllTimeSummary from "../components/layout/AllTimeSummary";
+import ExportModal from "../components/modals/ExportModal";
 
 interface MainDashboardProps {
   tradeData: DayData[];
   userEmail: string | null;
   onSignOut: () => void;
-  onSaveTradeData: (date: Date, data: { profit: number; trades: number }) => Promise<boolean>;
+  onSaveTradeData: (
+    date: Date,
+    data: { profit: number; trades: number }
+  ) => Promise<boolean>;
   onDeleteTrade: (id: string) => Promise<boolean>;
   fetchTradeData: () => Promise<DayData[]>;
   setTradeData: (data: DayData[]) => void;
@@ -47,8 +50,10 @@ export default function MainDashboard({
 }: MainDashboardProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [currentView, setCurrentView] = useState<'calendar' | 'chart'>('calendar');
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>('all-time');
+  const [currentView, setCurrentView] = useState<"calendar" | "chart">(
+    "calendar"
+  );
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>("all-time");
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const currentMonthData = tradeData.filter((day) =>
@@ -60,7 +65,7 @@ export default function MainDashboard({
   const selectedDayData = selectedDate
     ? tradeData.find(
         (day) =>
-          format(day.date, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd"),
+          format(day.date, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd")
       )
     : null;
 
@@ -185,13 +190,11 @@ export default function MainDashboard({
               <Button
                 variant="primary"
                 icon={ChevronLeft}
-                size="sm"
                 onClick={() => setCurrentDate(subMonths(currentDate, 1))}
               />
               <Button
                 variant="primary"
                 icon={ChevronRight}
-                size="sm"
                 onClick={() => setCurrentDate(addMonths(currentDate, 1))}
               />
             </div>

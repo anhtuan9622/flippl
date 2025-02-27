@@ -2,6 +2,7 @@ import React from "react";
 import { Mail, Coffee } from "lucide-react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { getVersion } from "../../lib/version";
+import Button from "../ui/Button";
 
 export default function Footer() {
   return (
@@ -20,9 +21,8 @@ export default function Footer() {
                     href="mailto:hey@flippl.app"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="neo-brutalist-blue p-2 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                   >
-                    <Mail className="w-5 h-5" />
+                    <Button variant="primary" icon={Mail} />
                   </a>
                 </Tooltip.Trigger>
                 <Tooltip.Portal>
@@ -42,9 +42,8 @@ export default function Footer() {
                     href="https://www.buymeacoffee.com/flippl"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="neo-brutalist-blue p-2 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                   >
-                    <Coffee className="w-5 h-5" />
+                    <Button variant="primary" icon={Coffee} />
                   </a>
                 </Tooltip.Trigger>
                 <Tooltip.Portal>

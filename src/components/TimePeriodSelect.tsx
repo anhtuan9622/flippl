@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
-import * as Popover from '@radix-ui/react-popover';
-import { Clock, ChevronDown } from 'lucide-react';
+import React, { useState } from "react";
+import * as Popover from "@radix-ui/react-popover";
+import { Clock, ChevronDown } from "lucide-react";
 
-export type TimePeriod = 'all-time' | 'year-to-date' | 'month-to-date' | 'week-to-date';
+export type TimePeriod =
+  | "all-time"
+  | "year-to-date"
+  | "month-to-date"
+  | "week-to-date";
 
 interface TimePeriodSelectProps {
   value: TimePeriod;
@@ -10,15 +14,18 @@ interface TimePeriodSelectProps {
 }
 
 const periods: { value: TimePeriod; label: string }[] = [
-  { value: 'all-time', label: 'All-Time Summary' },
-  { value: 'year-to-date', label: 'Year-to-Date Summary' },
-  { value: 'month-to-date', label: 'Month-to-Date Summary' },
-  { value: 'week-to-date', label: 'Week-to-Date Summary' },
+  { value: "all-time", label: "All-Time Summary" },
+  { value: "year-to-date", label: "Year-to-Date Summary" },
+  { value: "month-to-date", label: "Month-to-Date Summary" },
+  { value: "week-to-date", label: "Week-to-Date Summary" },
 ];
 
-export default function TimePeriodSelect({ value, onChange }: TimePeriodSelectProps) {
+export default function TimePeriodSelect({
+  value,
+  onChange,
+}: TimePeriodSelectProps) {
   const [open, setOpen] = useState(false);
-  const selectedPeriod = periods.find(period => period.value === value);
+  const selectedPeriod = periods.find((period) => period.value === value);
 
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
@@ -45,8 +52,8 @@ export default function TimePeriodSelect({ value, onChange }: TimePeriodSelectPr
                 }}
                 className={`px-3 py-2 text-left font-bold rounded-lg transition-colors ${
                   value === period.value
-                    ? 'bg-yellow-400 text-black'
-                    : 'hover:bg-gray-200 text-black'
+                    ? "bg-yellow-400 text-black"
+                    : "hover:bg-gray-200 text-black"
                 }`}
               >
                 {period.label}

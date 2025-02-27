@@ -4,6 +4,7 @@ import { Lock, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import { supabase } from "../lib/supabase";
 import AppLayout from "../components/layout/AppLayout";
+import Section from "../components/layout/Section";
 
 export default function PasswordReset() {
   const [newPassword, setNewPassword] = useState("");
@@ -45,15 +46,15 @@ export default function PasswordReset() {
 
   return (
     <AppLayout>
-      <div className="neo-brutalist-white p-8">
-        <div className="max-w-md mx-auto">
-          <h2 className="text-3xl font-black text-black mb-4 text-center">
-            🔑 Reset Password
-          </h2>
-          <p className="text-gray-600 mb-8 text-center">
-            Enter the new password you want to update.
-          </p>
-          <form onSubmit={handlePasswordReset} className="space-y-6">
+      <Section
+        title="🔑 Reset Password"
+        subtitle="Enter the new password you want to update."
+      >
+        <Section.Content>
+          <form
+            onSubmit={handlePasswordReset}
+            className="max-w-md mx-auto space-y-6"
+          >
             <div>
               <label
                 htmlFor="newPassword"
@@ -96,8 +97,8 @@ export default function PasswordReset() {
               {loading ? "Updating..." : "Update"}
             </button>
           </form>
-        </div>
-      </div>
+        </Section.Content>
+      </Section>
     </AppLayout>
   );
 }

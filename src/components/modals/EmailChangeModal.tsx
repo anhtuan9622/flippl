@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { X, Mail, Save } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
-import Button from "../ui/Button";
 import { supabase } from "../../lib/supabase";
 import toast from "react-hot-toast";
+import Button from "../ui/Button";
+import Input from "../ui/Input";
 
 interface EmailChangeModalProps {
   isOpen: boolean;
@@ -74,59 +75,56 @@ export default function EmailChangeModal({
               <Dialog.Title className="text-2xl font-black text-black">
                 Change Email
               </Dialog.Title>
-              <Button
-                variant="default"
-                icon={X}
-                size="sm"
-                disabled={isSubmitting}
-                onClick={() => onClose()}
-              />
+              <Dialog.Close asChild>
+                <Button
+                  variant="default"
+                  icon={X}
+                  onClick={handleClose}
+                  disabled={isSubmitting}
+                />
+              </Dialog.Close>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-black text-black mb-2">
-                  Current Email
-                </label>
-                <div className="neo-input w-full bg-gray-100 px-3 py-2">
-                  {currentEmail}
-                </div>
+                <Input
+                  type="email"
+                  value={currentEmail}
+                  label="Current Email"
+                  disabled
+                  icon={Mail}
+                  className="bg-gray-100"
+                />
               </div>
 
               <div>
-                <label
-                  htmlFor="newEmail"
-                  className="block text-sm font-black text-black mb-2"
-                >
-                  New Email
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                  <input
-                    id="newEmail"
-                    type="email"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    className="neo-input w-full pl-10"
-                    placeholder="Enter new email address"
-                    required
-                    disabled={isSubmitting}
-                  />
-                </div>
+                <Input
+                  id="newEmail"
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  label="New Email"
+                  placeholder="Enter new email address"
+                  required
+                  disabled={isSubmitting}
+                  icon={Mail}
+                />
               </div>
 
               <div className="flex justify-end gap-3 pt-4">
+                <Dialog.Close asChild>
+                  <Button
+                    variant="default"
+                    onClick={handleClose}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                </Dialog.Close>
                 <Button
-                  variant="default"
-                  disabled={isSubmitting}
-                  onClick={() => onClose()}
-                >
-                  Cancel
-                </Button>
-                <Button
+                  type="submit"
                   variant="primary"
                   icon={Save}
-                  type="submit"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Updating..." : "Update"}

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Download, Check } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
-import Button from "../ui/Button";
 import toast from "react-hot-toast";
+import Button from "../ui/Button";
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -56,20 +56,22 @@ export default function ExportModal({
               </ul>
 
               <div className="flex justify-end gap-3 pt-4">
-                <Button
-                  variant="default"
-                  disabled={isExporting}
-                  onClick={() => onClose()}
-                >
-                  Close
-                </Button>
+                <Dialog.Close asChild>
+                  <Button
+                    variant="default"
+                    onClick={onClose}
+                    disabled={isExporting}
+                  >
+                    Close
+                  </Button>
+                </Dialog.Close>
                 <Button
                   variant="primary"
                   icon={isExporting ? Check : Download}
                   onClick={handleExport}
                   disabled={isExporting}
                 >
-                  {isExporting ? 'Exporting...' : 'Export'}
+                  {isExporting ? "Exporting..." : "Export"}
                 </Button>
               </div>
             </div>

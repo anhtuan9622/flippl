@@ -15,6 +15,7 @@ import { supabase } from "../lib/supabase";
 import AppLayout from "../components/layout/AppLayout";
 import AllTimeSummary from "../components/layout/AllTimeSummary";
 import { TimePeriod } from "../components/TimePeriodSelect";
+import Section from "../components/layout/Section";
 
 interface SharedProfile {
   id: string;
@@ -270,17 +271,19 @@ export default function SharedSummary() {
         }
       />
 
-      <div className="neo-brutalist-white p-6 text-center">
-        <p className="text-black font-medium">
-          Want to track your own trading performance?{" "}
-          <Link
-            to="/"
-            className="text-blue-600 hover:text-blue-800 font-bold"
-          >
-            Sign up for free
-          </Link>
-        </p>
-      </div>
+      <Section>
+        <Section.Content className="text-center">
+          <p className="text-black font-medium">
+            Want to track your own trading performance?{" "}
+            <Link
+              to="/"
+              className="text-blue-600 hover:text-blue-800 font-bold"
+            >
+              Sign up for free
+            </Link>
+          </p>
+        </Section.Content>
+      </Section>
     </AppLayout>
   );
 }
