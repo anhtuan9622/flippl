@@ -3,7 +3,7 @@ import { DivideIcon as LucideIcon } from "lucide-react";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "primary" | "danger" | "ghost" | "select";
+  variant?: "default" | "primary" | "danger" | "ghost" | "select" | "link";
   size?: "sm" | "md" | "lg";
   icon?: LucideIcon;
   iconPosition?: "left" | "right";
@@ -36,12 +36,13 @@ export default function Button({
     select:
       "neo-brutalist-yellow text-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
     ghost: "hover:bg-gray-100 text-gray-600 hover:text-black",
+    link: "text-blue-600 hover:text-blue-800",
   };
 
   const sizeStyles = {
     sm: "px-2 py-1.5 text-sm",
-    md: "px-3 py-2",
-    lg: "px-6 py-3 text-lg",
+    md: "px-3 py-2.5",
+    lg: "px-6 py-4 text-lg",
   };
 
   const disabledStyles =

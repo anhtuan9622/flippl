@@ -5,6 +5,8 @@ import toast from "react-hot-toast";
 import { supabase } from "../lib/supabase";
 import AppLayout from "../components/layout/AppLayout";
 import Section from "../components/layout/Section";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
 
 export default function PasswordReset() {
   const [newPassword, setNewPassword] = useState("");
@@ -55,27 +57,19 @@ export default function PasswordReset() {
             onSubmit={handlePasswordReset}
             className="max-w-md mx-auto space-y-6"
           >
-            <div>
-              <label
-                htmlFor="newPassword"
-                className="block text-sm font-black text-black mb-2"
-              >
-                New Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                <input
-                  id="newPassword"
-                  type={showPassword ? "text" : "password"}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="neo-input w-full pl-10 pr-10"
-                  placeholder="******"
-                  required
-                  minLength={6}
-                  maxLength={50}
-                  disabled={loading}
-                />
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              label="Password"
+              icon={Lock}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="******"
+              required
+              minLength={6}
+              maxLength={50}
+              disabled={loading}
+              rightElement={
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -87,15 +81,17 @@ export default function PasswordReset() {
                     <Eye className="w-5 h-5" />
                   )}
                 </button>
-              </div>
-            </div>
-            <button
+              }
+            />
+
+            <Button
+              variant="primary"
               type="submit"
               disabled={loading}
-              className="neo-brutalist-blue w-full py-3 font-bold disabled:opacity-50"
+              className="w-full"
             >
               {loading ? "Updating..." : "Update"}
-            </button>
+            </Button>
           </form>
         </Section.Content>
       </Section>

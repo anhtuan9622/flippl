@@ -6,6 +6,8 @@ import toast from "react-hot-toast";
 import AppLayout from "../components/layout/AppLayout";
 import Features from "../components/Features";
 import Section from "../components/layout/Section";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
 
 interface AuthFormProps {
   onSuccess: () => void;
@@ -79,36 +81,28 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
               onSubmit={handleMagicLink}
               className="max-w-md mx-auto space-y-6"
             >
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-black text-black mb-2"
-                >
-                  Email
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="neo-input w-full pl-10"
-                    placeholder="anh@hoang.com"
-                    required
-                    minLength={5}
-                    maxLength={50}
-                  />
-                </div>
-              </div>
+              <Input
+                id="email"
+                type="email"
+                label="Email"
+                icon={Mail}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="anh@hoang"
+                required
+                minLength={5}
+                maxLength={50}
+                disabled={loading}
+              />
 
-              <button
+              <Button
+                variant="primary"
                 type="submit"
                 disabled={loading}
-                className="neo-brutalist-blue w-full py-3 font-bold disabled:opacity-50"
+                className="w-full"
               >
                 {loading ? "Sending Magic Link..." : "Login via Magic Link"}
-              </button>
+              </Button>
 
               <div className="text-center">
                 <Link

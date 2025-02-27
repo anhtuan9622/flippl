@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import toast from "react-hot-toast";
 import Section from "../components/layout/Section";
 import AppLayout from "../components/layout/AppLayout";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
 
 interface PasswordAuthProps {
   onSuccess: () => void;
@@ -16,6 +18,7 @@ export default function PasswordAuth({ onSuccess }: PasswordAuthProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,104 +94,89 @@ export default function PasswordAuth({ onSuccess }: PasswordAuthProps) {
         }
       >
         <Section.Content>
-          <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-6">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-black text-black mb-2"
-            >
-              Email
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="neo-input w-full pl-10"
-                placeholder="anh@hoang.com"
-                required
-                minLength={5}
-                maxLength={50}
-                disabled={loading}
-              />
-            </div>
-          </div>
+          <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-4">
+            <Input
+              id="email"
+              type="email"
+              label="Email"
+              icon={Mail}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="anh@hoang"
+              required
+              minLength={5}
+              maxLength={50}
+              disabled={loading}
+            />
 
-          <div>
-            <div className="flex justify-between items-center">
-              <label
-                htmlFor="password"
-                className="block text-sm font-black text-black mb-2"
-              >
-                Password
-              </label>
-
-              {!isSignUp && (
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              label="Password"
+              icon={Lock}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="******"
+              required
+              minLength={6}
+              maxLength={50}
+              disabled={loading}
+              rightElement={
                 <button
                   type="button"
-                  onClick={handleForgotPassword}
-                  className="text-blue-600 hover:text-blue-800 font-bold text-sm mb-1"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              }
+            />
+
+            {!isSignUp && (
+              <div className="flex justify-end">
+                <Button
+                  variant="link"
+                  type="button"
+                  onClick={() => setIsSignUp(!isSignUp)}
+                  disabled={loading}
+                  className="text-sm"
                 >
                   Forgot password?
-                </button>
-              )}
-            </div>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="neo-input w-full pl-10 pr-10"
-                placeholder="******"
-                required
-                minLength={6}
-                maxLength={50}
-                disabled={loading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-              >
-                {showPassword ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
-              </button>
-            </div>
-          </div>
+                </Button>
+              </div>
+            )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="neo-brutalist-blue w-full py-3 font-bold disabled:opacity-50"
-          >
-            {loading
-              ? isSignUp
-                ? "Signing Up..."
-                : "Logging In..."
-              : isSignUp
-              ? "Sign Up"
-              : "Log In"}
-          </button>
-
-          <div className="text-center space-y-4">
-            <button
-              type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-blue-600 hover:text-blue-800 font-bold"
+            <Button
+              variant="primary"
+              type="submit"
+              disabled={loading}
+              className="w-full"
             >
-              {isSignUp
-                ? "Already have an account? Log in"
-                : "Need an account? Sign up"}
-            </button>
+              {loading
+                ? isSignUp
+                  ? "Signing Up..."
+                  : "Logging In..."
+                : isSignUp
+                ? "Sign Up"
+                : "Log In"}
+            </Button>
 
-            <div>
+            <div className="flex flex-col text-center pt-2 gap-2">
+              <Button
+                variant="link"
+                type="button"
+                onClick={() => setIsSignUp(!isSignUp)}
+                disabled={loading}
+              >
+                {isSignUp
+                  ? "Already have an account? Log in"
+                  : "Need an account? Sign up"}
+              </Button>
+
               <Link
                 to="/"
                 className="text-blue-600 hover:text-blue-800 font-bold"
@@ -196,7 +184,6 @@ export default function PasswordAuth({ onSuccess }: PasswordAuthProps) {
                 Or login via magic link
               </Link>
             </div>
-          </div>
           </form>
         </Section.Content>
       </Section>

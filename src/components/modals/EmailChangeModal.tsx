@@ -125,7 +125,7 @@ export default function EmailChangeModal({
                   type="submit"
                   variant="primary"
                   icon={Save}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !newEmail}
                 >
                   {isSubmitting ? "Updating..." : "Update"}
                 </Button>
