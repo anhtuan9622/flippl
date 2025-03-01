@@ -11,10 +11,10 @@ export interface TradeEntryData {
   trade_id?: string;
   transaction_type: 'Buy' | 'Sell';
   symbol: string;
-  quantity: number;
-  price: number;
+  quantity: string;
+  price: string;
+  commission: string;
   total_amount: number;
-  commission: number;
   linked_buy_id?: string;
   trade_profit?: number;
   created_at?: string;
