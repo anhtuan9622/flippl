@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, RefreshCw } from "lucide-react";
+import toast from "react-hot-toast";
 import {
   format,
   parseISO,
@@ -15,6 +16,7 @@ import { supabase } from "../lib/supabase";
 import AppLayout from "../components/layout/AppLayout";
 import AllTimeSummary from "../components/layout/AllTimeSummary";
 import { TimePeriod } from "../components/TimePeriodSelect";
+import Button from "../components/ui/Button";
 import Section from "../components/layout/Section";
 
 interface SharedProfile {
@@ -56,10 +58,34 @@ export default function SharedSummary() {
   const [error, setError] = useState<string | null>(null);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("all-time");
   const [tradeData, setTradeData] = useState<any[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const refreshData = async () => {
+    if (!shareId || !profile?.id || isRefreshing) return;
+    
+    setIsRefreshing(true);
+    try {
+      const { data: trades } = await supabase
+        .from("trades")
+        .select("*")
+        .eq("user_id", profile.id)
+        .order("date", { ascending: true });
+
+      if (trades) {
+        setTradeData(trades);
+        toast.success("Data refreshed");
+      }
+    } catch (err) {
+      console.error("Error refreshing data:", err);
+      toast.error("Failed to refresh data");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
-    let subscription: any;
+    let pollInterval: number;
 
     const fetchSharedData = async () => {
       if (!shareId) {
@@ -104,32 +130,6 @@ export default function SharedSummary() {
           setTradeData(trades || []);
           setLoading(false);
         }
-
-        // Subscribe to trades changes
-        subscription = supabase
-          .channel(`trades_${profile.id}`)
-          .on(
-            "postgres_changes",
-            {
-              event: "*",
-              schema: "public",
-              table: "trades",
-              filter: `user_id=eq.${profile.id}`,
-            },
-            async () => {
-              // Refetch trades on any change
-              const { data: updatedTrades } = await supabase
-                .from("trades")
-                .select("*")
-                .eq("user_id", profile.id)
-                .order("date", { ascending: true });
-
-              if (mounted && updatedTrades) {
-                setTradeData(updatedTrades);
-              }
-            }
-          )
-          .subscribe();
       } catch (err) {
         if (mounted) {
           setError(
@@ -144,11 +144,14 @@ export default function SharedSummary() {
 
     fetchSharedData();
 
+    // Set up polling every 30 seconds
+    pollInterval = window.setInterval(() => {
+      if (mounted) refreshData();
+    }, 30000);
+
     return () => {
       mounted = false;
-      if (subscription) {
-        supabase.removeChannel(subscription);
-      }
+      clearInterval(pollInterval);
     };
   }, [shareId]);
 
@@ -262,11 +265,20 @@ export default function SharedSummary() {
         timePeriod={timePeriod}
         onTimePeriodChange={setTimePeriod}
         actions={
-          <div className="text-sm font-medium text-gray-600">
-            Shared by {profile?.email} • Last updated:{" "}
-            {profile?.updated_at
-              ? format(parseISO(profile.updated_at), "MMM d, yyyy")
-              : ""}
+          <div className="flex items-center gap-4">
+            <div className="text-sm font-medium text-gray-600">
+              Shared by {profile?.email} • Last updated:{" "}
+              {profile?.updated_at
+                ? format(parseISO(profile.updated_at), "MMM d, yyyy")
+                : ""}
+            </div>
+            <Button
+              variant="primary"
+              icon={RefreshCw}
+              onClick={refreshData}
+              disabled={isRefreshing}
+              loading={isRefreshing}
+            />
           </div>
         }
       />

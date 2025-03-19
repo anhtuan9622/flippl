@@ -125,7 +125,7 @@ export default function TradeForm({
 
     setCurrentEntry((prev) => ({
       ...prev,
-      total_amount: Number(total.toFixed(2)),
+      total_amount: Number(total.toFixed(3)),
     }));
   }, [currentEntry.quantity, currentEntry.price]);
 
@@ -437,7 +437,7 @@ export default function TradeForm({
   // Helper function to format display text for entries
   const formatNumber = (value: string) => {
     const num = parseFloat(value);
-    return isNaN(num) ? '0' : num.toFixed(2);
+    return isNaN(num) ? '0' : num.toFixed(3);
   };
 
   return (
@@ -746,7 +746,10 @@ export default function TradeForm({
                               {formatNumber(entry.price)}
                             </div>
                             <div className="font-semibold">
-                              Total: ${entry.total_amount.toLocaleString()}
+                              Total: ${parseFloat(entry.total_amount).toLocaleString('en-US', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                              })}
                             </div>
                             {parseFloat(entry.commission) > 0 && (
                               <div>
