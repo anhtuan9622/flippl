@@ -13,6 +13,7 @@ Track your daily trading performance with a beautiful calendar view. Monitor pro
 ## Tech Stack
 
 - React
+- Vite
 - TypeScript
 - Tailwind CSS
 - Supabase
@@ -24,7 +25,7 @@ Track your daily trading performance with a beautiful calendar view. Monitor pro
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/flippl.git
+   git clone https://github.com/anhtuan9622/flippl.git
    cd flippl
    ```
 
