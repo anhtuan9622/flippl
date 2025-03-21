@@ -74,7 +74,7 @@ export default function Header({
                       </div>
                       <div className="space-y-4 pt-4 border-t-4 border-black">
                         <div className="flex flex-wrap justify-end gap-2">
-                          <a
+                          {/* <a
                             href="https://insigh.to/b/flipplapp"
                             target="_blank"
                             rel="noopener noreferrer"
@@ -87,7 +87,7 @@ export default function Header({
                             >
                               Suggest features
                             </Button>
-                          </a>
+                          </a> */}
                           <Button
                             variant="primary"
                             icon={Mail}
