@@ -18,7 +18,6 @@ export default function DayCell({
   isToday,
   onClick,
 }: DayCellProps) {
-  const hasProfit = data?.trades?.profit && data.trades.profit > 0;
   const profit = data?.trades?.profit || 0;
   
   return (
@@ -45,16 +44,16 @@ export default function DayCell({
           <div className="m-auto">
             <div className={`
               flex flex-wrap items-center justify-between gap-1 font-bold
-              ${hasProfit ? 'text-green-600' : 'text-red-600'}
+              ${profit > 0 ? 'text-green-600' : profit < 0 ? 'text-red-600' : null}
             `}>
               <span className="truncate">
                 {profit < 0 ? `-$${Math.abs(profit).toLocaleString()}` : `$${profit.toLocaleString()}`}
               </span>
-              {hasProfit ? (
+              {profit > 0 ? (
                 <TrendingUp className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
-              ) : (
+              ) : profit < 0 ? (
                 <TrendingDown className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />
-              )}
+              ) : null}
             </div>
             <div className="text-xs lg:text-normal font-medium text-gray-600 truncate">
               {data.trades.trades.toLocaleString()} trades

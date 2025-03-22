@@ -15,7 +15,7 @@ import { DayData } from "../types";
 import { calculateMonthStats, calculateStats } from "../utils/stats";
 import { TimePeriod } from "../components/TimePeriodSelect";
 import Calendar from "../components/Calendar";
-import TradeForm from "../components/modals/TradeForm";
+import TradeDataModal from "../components/modals/trade/TradeDataModal";
 import ShareModal from "../components/modals/ShareModal";
 import ProfitChart from "../components/ProfitChart";
 import SummaryCard from "../components/SummaryCard";
@@ -219,7 +219,7 @@ export default function MainDashboard({
       </div>
 
       {selectedDate && (
-        <TradeForm
+        <TradeDataModal
           date={selectedDate}
           existingTrade={selectedDayData?.trades}
           onSave={(data) => onSaveTradeData(selectedDate, data)}

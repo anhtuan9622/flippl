@@ -2,29 +2,21 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
-import {
-  format,
-  parseISO,
-  startOfYear,
-  startOfMonth,
-  startOfWeek,
-  endOfDay,
-  isSameDay,
-  isAfter,
-} from "date-fns";
+import { format } from "date-fns";
+import { calculateStats } from "../utils/stats";
 import { supabase } from "../lib/supabase";
 import AppLayout from "../components/layout/AppLayout";
 import AllTimeSummary from "../components/layout/AllTimeSummary";
 import { TimePeriod } from "../components/TimePeriodSelect";
 import Button from "../components/ui/Button";
 import Section from "../components/layout/Section";
-import { TradeEntry, Stats } from "../types";
+import { DayData } from "../types";
+import { parseISO } from "date-fns";
 
 interface SharedProfile {
   id: string;
   email: string;
   share_id: string;
-  updated_at: string;
 }
 
 const maskEmail = (email: string) => {
@@ -42,17 +34,12 @@ const maskEmail = (email: string) => {
 export default function SharedSummary() {
   const { shareId } = useParams<{ shareId: string }>();
   const [profile, setProfile] = useState<SharedProfile | null>(null);
-  const [stats, setStats] = useState<Stats>({
-    profit: 0,
-    trades: 0,
-    tradingDays: 0,
-    winRate: 0,
-  });
+  const [tradeData, setTradeData] = useState<DayData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("all-time");
-  const [tradeData, setTradeData] = useState<any[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefreshTime, setLastRefreshTime] = useState<Date>(new Date());
 
   const refreshData = async () => {
     if (!shareId || !profile?.id || isRefreshing) return;
@@ -66,8 +53,21 @@ export default function SharedSummary() {
         .order("date", { ascending: true });
 
       if (trades) {
-        setTradeData(trades);
+        const formattedTrades = trades.map((trade) => ({
+          date: parseISO(trade.date),
+          trades: {
+            id: trade.id,
+            date: parseISO(trade.date),
+            profit: trade.profit,
+            trades: trade.trades_count,
+            winRate: trade.profit > 0 ? 100 : 0,
+            notes: trade.notes,
+            tags: trade.tags,
+          },
+        }));
+        setTradeData(formattedTrades);
         toast.success("Data refreshed");
+        setLastRefreshTime(new Date());
       }
     } catch (err) {
       console.error("Error refreshing data:", err);
@@ -118,10 +118,22 @@ export default function SharedSummary() {
           setProfile({
             id: profile.id,
             email: maskEmail(profile.email || "Anonymous"),
-            share_id: profile.share_id,
-            updated_at: profile.updated_at,
+            share_id: profile.share_id
           });
-          setTradeData(trades || []);
+          const formattedTrades = (trades || []).map((trade) => ({
+            date: parseISO(trade.date),
+            trades: {
+              id: trade.id,
+              date: parseISO(trade.date),
+              profit: trade.profit,
+              trades: trade.trades_count,
+              winRate: trade.profit > 0 ? 100 : 0,
+              notes: trade.notes,
+              tags: trade.tags,
+            },
+          }));
+          setTradeData(formattedTrades);
+          setLastRefreshTime(new Date());
           setLoading(false);
         }
       } catch (err) {
@@ -148,76 +160,6 @@ export default function SharedSummary() {
       clearInterval(pollInterval);
     };
   }, [shareId]);
-
-  const calculateStats = (trades: TradeEntry[], period: TimePeriod): Stats => {
-    const now = endOfDay(new Date());
-    let filteredTrades = [...trades];
-
-    switch (period) {
-      case "year-to-date":
-        const yearStart = startOfYear(now);
-        filteredTrades = trades.filter((trade) => {
-          const tradeDate = trade.date;
-          return (
-            isAfter(tradeDate, yearStart) || isSameDay(tradeDate, yearStart)
-          );
-        });
-        break;
-      case "month-to-date":
-        const monthStart = startOfMonth(now);
-        filteredTrades = trades.filter((trade) => {
-          const tradeDate = trade.date;
-          return (
-            isAfter(tradeDate, monthStart) || isSameDay(tradeDate, monthStart)
-          );
-        });
-        break;
-      case "week-to-date":
-        const weekStart = startOfWeek(now, { weekStartsOn: 0 });
-        filteredTrades = trades.filter((trade) => {
-          const tradeDate = trade.date;
-          return (
-            isAfter(tradeDate, weekStart) || isSameDay(tradeDate, weekStart)
-          );
-        });
-        break;
-      default:
-        break;
-    }
-
-    if (!filteredTrades.length) {
-      return {
-        profit: 0,
-        trades: 0,
-        tradingDays: 0,
-        winRate: 0,
-      };
-    }
-
-    const totalProfit = filteredTrades.reduce(
-      (sum, trade) => sum + (trade.profit || 0),
-      0
-    );
-    const totalTrades = filteredTrades.reduce(
-      (sum, trade) => sum + (trade.trades_count || 0),
-      0
-    );
-    const tradingDays = filteredTrades.length;
-    const profitableDays = filteredTrades.filter(
-      (trade) => trade.profit > 0
-    ).length;
-    const winRate = tradingDays > 0 ? (profitableDays / tradingDays) * 100 : 0;
-
-    const EPSILON = 1e-10;
-    const normalizedProfit = Math.abs(totalProfit) < EPSILON ? 0 : totalProfit;
-
-    return {
-      profit: normalizedProfit,
-      trades: totalTrades,
-      tradingDays,
-      winRate,
-    };
-  };
 
   if (loading) {
     return (
@@ -261,10 +203,8 @@ export default function SharedSummary() {
         actions={
           <div className="flex items-center gap-4">
             <div className="text-sm font-medium text-gray-600">
-              Shared by {profile?.email} • Last updated:{" "}
-              {profile?.updated_at
-                ? format(parseISO(profile.updated_at), "MMM d, yyyy")
-                : ""}
+              Shared by {profile?.email} • Last refreshed:{" "}
+              {format(lastRefreshTime, "MMM d, yyyy h:mm a")}
             </div>
             <Button
               variant="primary"
