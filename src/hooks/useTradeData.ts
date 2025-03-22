@@ -28,6 +28,8 @@ export function useTradeData(userId: string | null) {
           profit: trade.profit,
           trades: trade.trades_count,
           winRate: trade.profit > 0 ? 100 : 0,
+          notes: trade.notes,
+          tags: trade.tags,
         },
       }));
     } catch (error) {
@@ -39,7 +41,7 @@ export function useTradeData(userId: string | null) {
 
   const handleSaveTradeData = async (
     selectedDate: Date,
-    data: { profit: number; trades: number }
+    data: { profit: number; trades: number; notes?: string; tags?: string[] }
   ) => {
     if (!selectedDate) return;
 
@@ -59,6 +61,8 @@ export function useTradeData(userId: string | null) {
           date: formattedDate,
           profit: data.profit,
           trades_count: data.trades,
+          notes: data.notes,
+          tags: data.tags,
         },
         {
           onConflict: "user_id,date",

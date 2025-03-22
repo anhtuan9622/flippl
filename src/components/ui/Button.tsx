@@ -28,13 +28,13 @@ export default function Button({
 
   const variantStyles = {
     default:
-      "neo-brutalist-gray text-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
+      "neo-brutalist-gray",
     primary:
-      "neo-brutalist-blue text-white hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
+      "neo-brutalist-blue",
     danger:
-      "neo-brutalist-red text-white hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
+      "neo-brutalist-red",
     select:
-      "neo-brutalist-yellow text-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
+      "neo-brutalist-yellow",
     ghost: "hover:bg-gray-100 text-gray-600 hover:text-black",
     link: "text-blue-600 hover:text-blue-800",
   };
@@ -47,7 +47,7 @@ export default function Button({
 
   const disabledStyles =
     disabled || loading
-      ? "opacity-50 cursor-not-allowed hover:translate-x-0 hover:translate-y-0 hover:shadow-none"
+      ? "opacity-50 cursor-not-allowed"
       : "";
   const widthStyles = fullWidth ? "w-full" : "";
 

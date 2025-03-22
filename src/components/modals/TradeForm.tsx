@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { format } from 'date-fns';
+import React, { useState, useCallback, useEffect } from "react";
+import { format } from "date-fns";
 import {
   X,
   Trash2,
@@ -8,12 +8,14 @@ import {
   DollarSign,
   BarChart2,
   Baseline,
-} from 'lucide-react';
-import Button from '../ui/Button';
-import Input from '../ui/Input';
-import toast from 'react-hot-toast';
-import { useTradeEntries } from '../../hooks/useTradeEntries';
-import { TradeEntryData } from '../../types';
+} from "lucide-react";
+import Button from "../ui/Button";
+import Input from "../ui/Input";
+import toast from "react-hot-toast";
+import { useTradeEntries } from "../../hooks/useTradeEntries";
+import { TradeEntryData } from "../../types";
+import Textarea from "../ui/Textarea";
+import TagGroup from "../ui/TagGroup";
 
 interface TradeFormProps {
   date: Date;
@@ -28,6 +30,21 @@ interface TradeFormProps {
   onEntriesUpdated: () => void;
 }
 
+const STRATEGY_TAGS = [
+  "daytrade",
+  "scalping",
+  "breakout",
+  "pullback",
+  "reversal",
+  "high volume",
+  "momentum",
+  "news play",
+  "earnings play",
+  "meme stock",
+  "swing trade",
+  "other"
+];
+
 export default function TradeForm({
   date,
   existingTrade,
@@ -37,21 +54,25 @@ export default function TradeForm({
   onEntriesUpdated,
 }: TradeFormProps) {
   const [profit, setProfit] = useState(
-    existingTrade ? String(existingTrade.profit) : '',
+    existingTrade ? String(existingTrade.profit) : ""
   );
   const [isDetailedMode, setIsDetailedMode] = useState(false);
   const [trades, setTrades] = useState(
-    existingTrade ? String(existingTrade.trades) : '',
+    existingTrade ? String(existingTrade.trades) : ""
   );
+  const [notes, setNotes] = useState(existingTrade?.notes || "");
+  const [tags, setTags] = useState<string[]>(existingTrade?.tags || []);
   const [hasExistingEntries, setHasExistingEntries] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentEntry, setCurrentEntry] = useState<TradeEntryData>({
-    transaction_type: 'Buy',
-    symbol: '',
-    quantity: '', // String to preserve input formatting
-    price: '', // String to preserve input formatting
+    transaction_type: "Buy",
+    symbol: "",
+    quantity: "",
+    price: "",
     total_amount: 0,
-    commission: '', // String to preserve input formatting
+    commission: "",
+    notes: "",
+    tags: [],
   });
   const [errors, setErrors] = useState<{
     symbol?: string;
@@ -65,7 +86,6 @@ export default function TradeForm({
     [key: string]: TradeEntryData[];
   }>({});
 
-  // Update hasExistingEntries when entries change
   useEffect(() => {
     setHasExistingEntries(entries.length > 0);
   }, [entries]);
@@ -78,10 +98,8 @@ export default function TradeForm({
   } = useTradeEntries();
   const { data: existingEntries } = useTradeEntries(existingTrade?.id);
 
-  // Initialize detailed mode based on existing entries
   useEffect(() => {
     if (existingEntries?.length > 0) {
-      // Convert the numeric values from database to strings for form inputs
       const formattedEntries = existingEntries.map((entry) => ({
         ...entry,
         quantity: String(entry.quantity),
@@ -92,32 +110,26 @@ export default function TradeForm({
       setEntries(formattedEntries);
       setIsDetailedMode(true);
 
-      // Group entries by symbol
-      const grouped = formattedEntries.reduce(
-        (acc, entry) => {
-          if (!acc[entry.symbol]) {
-            acc[entry.symbol] = [];
-          }
-          acc[entry.symbol].push(entry);
-          return acc;
-        },
-        {} as { [key: string]: TradeEntryData[] },
-      );
+      const grouped = formattedEntries.reduce((acc, entry) => {
+        if (!acc[entry.symbol]) {
+          acc[entry.symbol] = [];
+        }
+        acc[entry.symbol].push(entry);
+        return acc;
+      }, {} as { [key: string]: TradeEntryData[] });
 
       setSymbolEntries(grouped);
     }
   }, [existingEntries]);
 
-  // Handle escape key to close modal
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
   }, [onClose]);
 
-  // Calculate total_amount when quantity or price changes
   useEffect(() => {
     const quantity = parseFloat(currentEntry.quantity) || 0;
     const price = parseFloat(currentEntry.price) || 0;
@@ -125,21 +137,20 @@ export default function TradeForm({
 
     setCurrentEntry((prev) => ({
       ...prev,
-      total_amount: Number(total.toFixed(3)),
+      total_amount: Number(total.toFixed(4)),
     }));
   }, [currentEntry.quantity, currentEntry.price]);
 
-  // Fixed handleInputChange to properly handle decimal inputs
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
 
-    // Clear error when user starts typing
     setErrors((prev) => ({ ...prev, [name]: undefined }));
 
-    if (name === 'symbol') {
-      // Convert symbol to uppercase
+    if (name === "symbol") {
       setCurrentEntry((prev) => ({
         ...prev,
         symbol: value.toUpperCase(),
@@ -147,11 +158,9 @@ export default function TradeForm({
       return;
     }
 
-    if (name === 'quantity' || name === 'price' || name === 'commission') {
-      // Validate numeric input but keep as string
-      // Allow: empty string, digits, one decimal point, leading zero with decimal
+    if (name === "quantity" || name === "price" || name === "commission") {
       if (!/^$|^[0-9]*\.?[0-9]*$/.test(value)) {
-        return; // Reject invalid input
+        return;
       }
 
       setCurrentEntry((prev) => ({
@@ -161,34 +170,48 @@ export default function TradeForm({
       return;
     }
 
-    // For other fields (like transaction_type)
     setCurrentEntry((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
+  const handleTagToggle = (tag: string) => {
+    if (isDetailedMode) {
+      setCurrentEntry((prev) => {
+        const currentTags = prev.tags || [];
+        const newTags = currentTags.includes(tag)
+          ? currentTags.filter((t) => t !== tag)
+          : [...currentTags, tag];
+        return { ...prev, tags: newTags };
+      });
+    } else {
+      setTags((prev) =>
+        prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+      );
+    }
+  };
+
   const addEntry = () => {
-    // Validate required fields
     const newErrors: typeof errors = {};
 
     if (!currentEntry.symbol.trim()) {
-      newErrors.symbol = 'Symbol is required';
+      newErrors.symbol = "Symbol is required";
     }
 
     const quantity = parseFloat(currentEntry.quantity);
     if (!quantity || quantity <= 0) {
-      newErrors.quantity = 'Quantity must be greater than 0';
+      newErrors.quantity = "Quantity must be greater than 0";
     }
 
     const price = parseFloat(currentEntry.price);
     if (!price || price <= 0) {
-      newErrors.price = 'Price must be greater than 0';
+      newErrors.price = "Price must be greater than 0";
     }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      toast.error('Please fill in all required fields correctly');
+      toast.error("Please fill in all required fields correctly");
       return;
     }
 
@@ -197,10 +220,9 @@ export default function TradeForm({
 
     const existingEntries = symbolEntries[symbol] || [];
 
-    // For sell transactions, verify we have enough buy quantity
-    if (entry.transaction_type === 'Sell') {
+    if (entry.transaction_type === "Sell") {
       const buyEntries = existingEntries.filter(
-        (e) => e.transaction_type === 'Buy',
+        (e) => e.transaction_type === "Buy"
       );
 
       if (buyEntries.length === 0) {
@@ -210,39 +232,38 @@ export default function TradeForm({
 
       const totalBuyQuantity = buyEntries.reduce(
         (sum, e) => sum + (parseFloat(e.quantity) || 0),
-        0,
+        0
       );
 
       const totalSellQuantity = existingEntries
-        .filter((e) => e.transaction_type === 'Sell')
+        .filter((e) => e.transaction_type === "Sell")
         .reduce((sum, e) => sum + (parseFloat(e.quantity) || 0), 0);
 
       if (totalSellQuantity + quantity > totalBuyQuantity) {
         toast.error(
-          `Cannot sell more than bought quantity (${totalBuyQuantity} shares) for ${symbol}`,
+          `Cannot sell more than bought quantity (${totalBuyQuantity} shares) for ${symbol}`
         );
         return;
       }
     }
 
-    // Update entries
     const newEntries = [...entries, entry];
     setEntries(newEntries);
 
-    // Update symbol entries
     setSymbolEntries((prev) => ({
       ...prev,
       [symbol]: [...(prev[symbol] || []), entry],
     }));
 
-    // Reset form
     setCurrentEntry({
-      transaction_type: 'Buy',
-      symbol: '',
-      quantity: '',
-      price: '',
+      transaction_type: "Buy",
+      symbol: "",
+      quantity: "",
+      price: "",
       total_amount: 0,
-      commission: '',
+      commission: "",
+      notes: "",
+      tags: [],
     });
   };
 
@@ -250,20 +271,11 @@ export default function TradeForm({
     const entryToRemove = entries[index];
     const symbol = entryToRemove.symbol;
 
-    // If entry exists in database, delete it
-    if (entryToRemove.id) {
-      const success = await deleteEntry(entryToRemove);
-      if (!success) return;
-    }
-
-    // Remove from entries
-    const newEntries = entries.filter((_, i) => i !== index);
-    setEntries(newEntries);
-
-    // Remove from symbol entries
+    // Just remove from local state without deleting from database
+    setEntries(entries.filter((_, i) => i !== index));
     setSymbolEntries((prev) => ({
       ...prev,
-      [symbol]: prev[symbol].filter((e) => e !== entryToRemove),
+      [symbol]: prev[symbol].filter((e, i) => i !== index),
     }));
   };
 
@@ -271,70 +283,64 @@ export default function TradeForm({
     e.preventDefault();
     if (isSubmitting) return;
 
-    // Skip browser validation if we're in detailed mode with entries
     if (isDetailedMode && entries.length > 0) {
-      e.currentTarget.setAttribute('novalidate', '');
+      e.currentTarget.setAttribute("novalidate", "");
     }
 
-    // Clear previous errors
     setErrors({});
 
     if (!isDetailedMode) {
-      // Validate manual mode inputs
       const newErrors: typeof errors = {};
 
       if (!profit.trim()) {
-        newErrors.profit = 'Profit/Loss is required';
+        newErrors.profit = "Profit/Loss is required";
       } else if (isNaN(Number(profit))) {
-        newErrors.profit = 'Must be a valid number';
+        newErrors.profit = "Must be a valid number";
       }
 
       if (!trades.trim()) {
-        newErrors.trades = 'Number of trades is required';
+        newErrors.trades = "Number of trades is required";
       } else if (isNaN(Number(trades)) || Number(trades) < 1) {
-        newErrors.trades = 'Must be at least 1 trade';
+        newErrors.trades = "Must be at least 1 trade";
       }
 
       if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
-        toast.error('Please fill in all required fields correctly');
+        toast.error("Please fill in all required fields correctly");
         return;
       }
     }
 
-    // Validate trade pairs in detailed mode
     if (isDetailedMode) {
-      // Check for both missing transactions and quantity mismatches
       const invalidSymbols: string[] = [];
       const quantityMismatches: string[] = [];
 
       Object.entries(symbolEntries).forEach(([symbol, entries]) => {
-        const buyEntries = entries.filter((e) => e.transaction_type === 'Buy');
+        const buyEntries = entries.filter((e) => e.transaction_type === "Buy");
         const sellEntries = entries.filter(
-          (e) => e.transaction_type === 'Sell',
+          (e) => e.transaction_type === "Sell"
         );
 
-        // Check for missing transactions
         if (!buyEntries.length || !sellEntries.length) {
           invalidSymbols.push(symbol);
           return;
         }
 
-        // Check for quantity mismatches - convert string to number
         const buyQuantity = buyEntries.reduce(
           (sum, entry) => sum + (parseFloat(entry.quantity) || 0),
-          0,
+          0
         );
 
         const sellQuantity = sellEntries.reduce(
           (sum, entry) => sum + (parseFloat(entry.quantity) || 0),
-          0,
+          0
         );
 
-        // Allow a small rounding tolerance (0.0001)
         if (Math.abs(buyQuantity - sellQuantity) > 0.0001) {
           quantityMismatches.push(
-            `${symbol} (Buy: ${buyQuantity.toFixed(8)}, Sell: ${sellQuantity.toFixed(8)})`,
+            `${symbol} (Buy: ${buyQuantity.toFixed(
+              8
+            )}, Sell: ${sellQuantity.toFixed(8)})`
           );
         }
       });
@@ -345,18 +351,18 @@ export default function TradeForm({
             .map(
               (s) =>
                 `${s} ${
-                  !symbolEntries[s].some((e) => e.transaction_type === 'Buy')
-                    ? 'Buy'
-                    : 'Sell'
-                }`,
+                  !symbolEntries[s].some((e) => e.transaction_type === "Buy")
+                    ? "Buy"
+                    : "Sell"
+                }`
             )
-            .join(', ')} transaction${invalidSymbols.length > 1 ? 's' : ''}`,
+            .join(", ")} transaction${invalidSymbols.length > 1 ? "s" : ""}`
         );
         return;
       }
 
       if (quantityMismatches.length > 0) {
-        toast.error(`Quantity mismatch for: ${quantityMismatches.join(', ')}`);
+        toast.error(`Quantity mismatch for: ${quantityMismatches.join(", ")}`);
         return;
       }
     }
@@ -365,24 +371,21 @@ export default function TradeForm({
       setIsSubmitting(true);
 
       if (isDetailedMode) {
-        // Convert string values to numbers for database
         const processedEntries = entries.map((entry) => ({
           ...entry,
           quantity: parseFloat(entry.quantity) || 0,
           price: parseFloat(entry.price) || 0,
           commission: parseFloat(entry.commission) || 0,
-          // total_amount is already calculated
         }));
 
         const success = await saveTradeEntries(
           date,
           processedEntries,
           existingTrade?.id,
-          onEntriesUpdated,
+          onEntriesUpdated
         );
 
         if (success) {
-          // Wait for the trigger to update the trade summary
           await new Promise((resolve) => setTimeout(resolve, 500));
           onClose();
         }
@@ -390,7 +393,9 @@ export default function TradeForm({
         const success = await onSave({
           profit: Number(profit),
           trades: Number(trades),
-          entry_mode: 'manual',
+          notes,
+          tags,
+          entry_mode: "manual",
         });
 
         if (success) {
@@ -429,15 +434,13 @@ export default function TradeForm({
     onEntriesUpdated,
   ]);
 
-  // Prevent clicks inside modal from closing it
   const handleModalClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
 
-  // Helper function to format display text for entries
   const formatNumber = (value: string) => {
     const num = parseFloat(value);
-    return isNaN(num) ? '0' : num.toFixed(3);
+    return isNaN(num) ? "0" : num.toFixed(4);
   };
 
   return (
@@ -451,9 +454,9 @@ export default function TradeForm({
       >
         <div className="mb-6 flex flex-shrink-0 items-center justify-between">
           <h2 className="text-2xl font-black text-black">
-            {existingTrade ? 'Edit' : 'Add'} Trade Data
+            {existingTrade ? "Edit" : "Add"} Trade Data
             <div className="text-base font-bold text-gray-600">
-              {format(date, 'MMMM d, yyyy')}
+              {format(date, "MMMM d, yyyy")}
             </div>
           </h2>
           <Button
@@ -468,12 +471,12 @@ export default function TradeForm({
         <form
           onSubmit={handleSubmit}
           className={`flex-1 space-y-6 pb-2 ${
-            isDetailedMode && 'overflow-y-auto pr-2'
+            isDetailedMode && "overflow-y-auto pr-2"
           }`}
         >
           <div className="flex flex-wrap gap-2">
             <Button
-              variant={isDetailedMode ? 'default' : 'select'}
+              variant={isDetailedMode ? "default" : "select"}
               type="button"
               icon={Baseline}
               onClick={() => setIsDetailedMode(false)}
@@ -483,7 +486,7 @@ export default function TradeForm({
             </Button>
 
             <Button
-              variant={isDetailedMode ? 'select' : 'default'}
+              variant={isDetailedMode ? "select" : "default"}
               type="button"
               icon={List}
               onClick={() => setIsDetailedMode(true)}
@@ -529,6 +532,31 @@ export default function TradeForm({
                 error={errors.trades}
                 icon={BarChart2}
               />
+
+              <div>
+                <label className="block text-sm font-black text-black mb-2">
+                  Notes
+                </label>
+                <Textarea
+                  placeholder="Add your trade notes here..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  name="notes"
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-black text-black mb-2">
+                  Tags
+                </label>
+                <TagGroup
+                  tags={STRATEGY_TAGS}
+                  selectedTags={tags}
+                  onTagToggle={handleTagToggle}
+                  disabled={isSubmitting}
+                />
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -568,7 +596,7 @@ export default function TradeForm({
 
                   <div>
                     <Input
-                      type="text" // Changed from number to text for better handling
+                      type="text"
                       name="quantity"
                       value={currentEntry.quantity}
                       onChange={handleInputChange}
@@ -581,7 +609,7 @@ export default function TradeForm({
 
                   <div>
                     <Input
-                      type="text" // Changed from number to text
+                      type="text"
                       name="price"
                       value={currentEntry.price}
                       onChange={handleInputChange}
@@ -595,7 +623,7 @@ export default function TradeForm({
 
                   <div>
                     <Input
-                      type="text" // Changed from number to text
+                      type="text"
                       name="commission"
                       value={currentEntry.commission}
                       onChange={handleInputChange}
@@ -617,6 +645,27 @@ export default function TradeForm({
                         maximumFractionDigits: 2,
                       })}
                     </div>
+                  </div>
+
+                  <div className="col-span-2">
+                    <Textarea
+                      label="Notes"
+                      placeholder="Add your trade notes here..."
+                      value={currentEntry.notes}
+                      onChange={handleInputChange}
+                      name="notes"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <TagGroup
+                      label="Tags"
+                      tags={STRATEGY_TAGS}
+                      selectedTags={currentEntry.tags || []}
+                      onTagToggle={handleTagToggle}
+                      disabled={isSubmitting}
+                    />
                   </div>
                 </div>
 
@@ -650,50 +699,45 @@ export default function TradeForm({
                       </div>
                       {(() => {
                         const profitBySymbol = Object.entries(
-                          symbolEntries,
-                        ).reduce(
-                          (acc, [symbol, entries]) => {
-                            const buyTotal = entries
-                              .filter((e) => e.transaction_type === 'Buy')
-                              .reduce((sum, e) => {
-                                const quantity = parseFloat(e.quantity) || 0;
-                                const price = parseFloat(e.price) || 0;
-                                const commission =
-                                  parseFloat(e.commission) || 0;
-                                return sum + quantity * price + commission;
-                              }, 0);
+                          symbolEntries
+                        ).reduce((acc, [symbol, entries]) => {
+                          const buyTotal = entries
+                            .filter((e) => e.transaction_type === "Buy")
+                            .reduce((sum, e) => {
+                              const quantity = parseFloat(e.quantity) || 0;
+                              const price = parseFloat(e.price) || 0;
+                              const commission = parseFloat(e.commission) || 0;
+                              return sum + quantity * price + commission;
+                            }, 0);
 
-                            const sellTotal = entries
-                              .filter((e) => e.transaction_type === 'Sell')
-                              .reduce((sum, e) => {
-                                const quantity = parseFloat(e.quantity) || 0;
-                                const price = parseFloat(e.price) || 0;
-                                const commission =
-                                  parseFloat(e.commission) || 0;
-                                return sum + quantity * price - commission;
-                              }, 0);
+                          const sellTotal = entries
+                            .filter((e) => e.transaction_type === "Sell")
+                            .reduce((sum, e) => {
+                              const quantity = parseFloat(e.quantity) || 0;
+                              const price = parseFloat(e.price) || 0;
+                              const commission = parseFloat(e.commission) || 0;
+                              return sum + quantity * price - commission;
+                            }, 0);
 
-                            acc[symbol] = sellTotal - buyTotal;
-                            return acc;
-                          },
-                          {} as Record<string, number>,
-                        );
+                          acc[symbol] = sellTotal - buyTotal;
+                          return acc;
+                        }, {} as Record<string, number>);
 
                         const totalProfit = Object.values(
-                          profitBySymbol,
+                          profitBySymbol
                         ).reduce((sum, profit) => sum + profit, 0);
 
                         return (
                           <span
                             className={`text-lg font-bold ${
                               totalProfit > 0
-                                ? 'text-green-600'
+                                ? "text-green-600"
                                 : totalProfit < 0
-                                  ? 'text-red-600'
-                                  : 'text-gray-600'
+                                ? "text-red-600"
+                                : "text-gray-600"
                             }`}
                           >
-                            {totalProfit < 0 ? '-' : ''}$
+                            {totalProfit < 0 ? "-" : ""}$
                             {Math.abs(totalProfit).toLocaleString(undefined, {
                               minimumFractionDigits: 2,
                               maximumFractionDigits: 2,
@@ -715,9 +759,9 @@ export default function TradeForm({
                             const entries = symbolEntries[symbol];
                             return (
                               entries.some(
-                                (e) => e.transaction_type === 'Buy',
+                                (e) => e.transaction_type === "Buy"
                               ) &&
-                              entries.some((e) => e.transaction_type === 'Sell')
+                              entries.some((e) => e.transaction_type === "Sell")
                             );
                           }).length
                         }
@@ -737,18 +781,19 @@ export default function TradeForm({
                           <div className="text-sm text-gray-600">
                             <div
                               className={`font-medium ${
-                                entry.transaction_type === 'Buy'
-                                  ? 'text-blue-600'
-                                  : 'text-green-600'
+                                entry.transaction_type === "Buy"
+                                  ? "text-blue-600"
+                                  : "text-green-600"
                               }`}
                             >
                               {entry.transaction_type}: {entry.quantity} @ $
                               {formatNumber(entry.price)}
                             </div>
                             <div className="font-semibold">
-                              Total: ${parseFloat(entry.total_amount).toLocaleString('en-US', {
+                              Total: $
+                              {entry.total_amount.toLocaleString("en-US", {
                                 minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
+                                maximumFractionDigits: 2,
                               })}
                             </div>
                             {parseFloat(entry.commission) > 0 && (
@@ -756,13 +801,29 @@ export default function TradeForm({
                                 Commission: ${formatNumber(entry.commission)}
                               </div>
                             )}
+                            {entry.notes && (
+                              <div className="text-gray-600">
+                                Notes: {entry.notes}
+                              </div>
+                            )}
+                            {entry.tags && entry.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                Tags: {entry.tags.map((tag) => (
+                                  <span
+                                    key={tag}
+                                    className="rounded-md bg-white px-1.5 py-0.5 text-xs font-medium text-gray-600"
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                         <Button
                           variant="danger"
-                          icon={Trash2}
-                          type="button"
                           size="sm"
+                          icon={Trash2}
                           onClick={() => removeEntry(index)}
                           disabled={isSubmitting}
                         />
@@ -815,7 +876,7 @@ export default function TradeForm({
                 }
                 loading={isSubmitting}
               >
-                {isSubmitting ? 'Saving...' : 'Save'}
+                {isSubmitting ? "Saving..." : "Save"}
               </Button>
             </div>
           </div>

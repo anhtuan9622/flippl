@@ -83,13 +83,15 @@ export default function MainDashboard({
       const stats = calculateStats(sortedData, timePeriod);
 
       const csvContent = [
-        ["Date", "Profit/Loss ($)", "No. of Trades", "Win/Loss"].join(","),
+        ["Date", "Profit/Loss ($)", "No. of Trades", "Win/Loss", "Notes", "Tags"].join(","),
         ...sortedData.map((day) =>
           [
             format(day.date, "yyyy-MM-dd"),
             day.trades?.profit || 0,
             day.trades?.trades || 0,
             day.trades?.profit && day.trades.profit > 0 ? "Win" : "Loss",
+            day.trades?.notes,
+            day.trades?.tags || "",
           ].join(",")
         ),
         "",

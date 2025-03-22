@@ -52,6 +52,7 @@ export default function ExportModal({
                 <li>Daily profit/loss</li>
                 <li>Number of trades per day</li>
                 <li>Win/loss status for each day</li>
+                <li>Notes and tags for each trade</li>
                 <li>All-time summary statistics</li>
               </ul>
 

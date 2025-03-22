@@ -4,6 +4,9 @@ export interface TradeEntry {
   profit: number;
   trades: number;
   winRate: number;
+  entry_mode?: 'manual' | 'detailed';
+  notes?: string;
+  tags?: string[];
 }
 
 export interface TradeEntryData {
@@ -15,8 +18,9 @@ export interface TradeEntryData {
   price: string;
   commission: string;
   total_amount: number;
-  linked_buy_id?: string;
   trade_profit?: number;
+  notes?: string;
+  tags?: string[];
   created_at?: string;
 }
 
