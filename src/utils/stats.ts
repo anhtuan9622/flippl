@@ -58,7 +58,6 @@ export const calculateStats = (
 ): Stats => {
   const now = endOfDay(new Date());
   let filteredTrades = [...trades];
-  console.log("filteredTrades", filteredTrades);
 
   switch (period) {
     case "year-to-date":
