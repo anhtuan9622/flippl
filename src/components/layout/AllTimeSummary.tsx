@@ -3,18 +3,7 @@ import { DollarSign, BarChart2, CalendarDays, Percent, Flame } from 'lucide-reac
 import { format } from 'date-fns';
 import SummaryCard from '../SummaryCard';
 import TimePeriodSelect, { TimePeriod } from '../TimePeriodSelect';
-
-interface YearToDateStats {
-  profit: number;
-  trades: number;
-  tradingDays: number;
-  winRate: number;
-  longestStreak?: {
-    days: number;
-    startDate: Date;
-    endDate: Date;
-  };
-}
+import { Stats } from '../types';
 
 interface AllTimeSummaryProps {
   stats: YearToDateStats;

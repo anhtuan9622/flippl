@@ -18,19 +18,13 @@ import AllTimeSummary from "../components/layout/AllTimeSummary";
 import { TimePeriod } from "../components/TimePeriodSelect";
 import Button from "../components/ui/Button";
 import Section from "../components/layout/Section";
+import { TradeEntry, Stats } from "../types";
 
 interface SharedProfile {
   id: string;
   email: string;
   share_id: string;
   updated_at: string;
-}
-
-interface SharedStats {
-  profit: number;
-  trades: number;
-  tradingDays: number;
-  winRate: number;
 }
 
 const maskEmail = (email: string) => {
@@ -48,7 +42,7 @@ const maskEmail = (email: string) => {
 export default function SharedSummary() {
   const { shareId } = useParams<{ shareId: string }>();
   const [profile, setProfile] = useState<SharedProfile | null>(null);
-  const [stats, setStats] = useState<SharedStats>({
+  const [stats, setStats] = useState<Stats>({
     profit: 0,
     trades: 0,
     tradingDays: 0,
@@ -155,7 +149,7 @@ export default function SharedSummary() {
     };
   }, [shareId]);
 
-  const calculateStats = (trades: any[], period: TimePeriod): SharedStats => {
+  const calculateStats = (trades: TradeEntry[], period: TimePeriod): Stats => {
     const now = endOfDay(new Date());
     let filteredTrades = [...trades];
 
@@ -163,7 +157,7 @@ export default function SharedSummary() {
       case "year-to-date":
         const yearStart = startOfYear(now);
         filteredTrades = trades.filter((trade) => {
-          const tradeDate = parseISO(trade.date);
+          const tradeDate = trade.date;
           return (
             isAfter(tradeDate, yearStart) || isSameDay(tradeDate, yearStart)
           );
@@ -172,7 +166,7 @@ export default function SharedSummary() {
       case "month-to-date":
         const monthStart = startOfMonth(now);
         filteredTrades = trades.filter((trade) => {
-          const tradeDate = parseISO(trade.date);
+          const tradeDate = trade.date;
           return (
             isAfter(tradeDate, monthStart) || isSameDay(tradeDate, monthStart)
           );
@@ -181,7 +175,7 @@ export default function SharedSummary() {
       case "week-to-date":
         const weekStart = startOfWeek(now, { weekStartsOn: 0 });
         filteredTrades = trades.filter((trade) => {
-          const tradeDate = parseISO(trade.date);
+          const tradeDate = trade.date;
           return (
             isAfter(tradeDate, weekStart) || isSameDay(tradeDate, weekStart)
           );

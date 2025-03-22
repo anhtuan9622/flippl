@@ -6,21 +6,9 @@ import {
   isSameDay,
   isAfter,
   isSameMonth,
-} from 'date-fns';
-import { DayData } from '../types';
-import { TimePeriod } from '../components/TimePeriodSelect';
-
-export interface Stats {
-  profit: number;
-  trades: number;
-  tradingDays: number;
-  winRate: number;
-  longestStreak?: {
-    days: number;
-    startDate: Date;
-    endDate: Date;
-  } | null;
-}
+} from "date-fns";
+import { Stats, DayData } from "../types";
+import { TimePeriod } from "../components/TimePeriodSelect";
 
 export const findLongestWinningStreak = (trades: DayData[]) => {
   if (!trades.length) return null;
@@ -64,9 +52,13 @@ export const findLongestWinningStreak = (trades: DayData[]) => {
     : null;
 };
 
-export const calculateStats = (trades: DayData[], period: TimePeriod): Stats => {
+export const calculateStats = (
+  trades: DayData[],
+  period: TimePeriod
+): Stats => {
   const now = endOfDay(new Date());
   let filteredTrades = [...trades];
+  console.log("filteredTrades", filteredTrades);
 
   switch (period) {
     case "year-to-date":
