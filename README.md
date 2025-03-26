@@ -2,6 +2,9 @@
 
 Track your daily trading performance with a beautiful calendar view. Monitor profits, trades count, and win rate with ease.
 
+![Screenshot](https://github.com/user-attachments/assets/98c3c6d9-ed14-4edb-8fde-f30da7af479c)
+
+
 ## Features
 
 - 📅 Daily Trading Tracking
