@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { DollarSign, BarChart2 } from "lucide-react";
 import { TradeEntryData } from "../../../types";
 import EntryForm from "./EntryForm";
 import EntriesList from "./EntriesList";
@@ -68,12 +67,12 @@ export default function DetailedEntryForm({
       }
 
       const buyQuantity = buyEntries.reduce(
-        (sum, entry) => sum + (parseFloat(entry.quantity) || 0),
+        (sum, entry) => sum + (entry.quantity || 0),
         0
       );
 
       const sellQuantity = sellEntries.reduce(
-        (sum, entry) => sum + (parseFloat(entry.quantity) || 0),
+        (sum, entry) => sum + (entry.quantity || 0),
         0
       );
 
@@ -102,9 +101,9 @@ export default function DetailedEntryForm({
       setIsSubmitting(true);
       const processedEntries = entries.map((entry) => ({
         ...entry,
-        quantity: parseFloat(entry.quantity) || 0,
-        price: parseFloat(entry.price) || 0,
-        commission: parseFloat(entry.commission) || 0,
+        quantity: entry.quantity || 0,
+        price: entry.price || 0,
+        commission: entry.commission || 0,
       }));
 
       const success = await onSave(date, processedEntries, existingTrade?.id);

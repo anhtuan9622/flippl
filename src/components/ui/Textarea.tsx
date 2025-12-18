@@ -19,7 +19,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         )}
         <div className="relative">
           <textarea
-            maxlength="500"
+            maxLength={500}
             ref={ref}
             className={`
               neo-input w-full h-[120px]

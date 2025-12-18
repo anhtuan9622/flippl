@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -8,6 +7,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  ScriptableContext,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { format, eachDayOfInterval, startOfMonth, endOfMonth } from "date-fns";
@@ -61,9 +61,10 @@ export default function ProfitChart({
         segment: {
           borderColor: "black",
         },
-        pointBackgroundColor: (ctx: any) => {
-          if (!ctx.raw) return "gray";
-          return ctx.raw > 0 ? "#16a34a" : ctx.raw < 0 ? "#dc2626" : "gray";
+        pointBackgroundColor: (ctx: ScriptableContext<"line">) => {
+          const value = ctx.raw as number | undefined;
+          if (!value) return "gray";
+          return value > 0 ? "#16a34a" : value < 0 ? "#dc2626" : "gray";
         },
       },
     ],
@@ -80,12 +81,12 @@ export default function ProfitChart({
         backgroundColor: "#facc15",
         titleColor: "black",
         titleFont: {
-          weight: "normal",
+          weight: "normal" as const,
           size: 14,
         },
         bodyColor: "black",
         bodyFont: {
-          weight: "bold",
+          weight: "bold" as const,
           size: 14,
         },
         padding: 12,
@@ -93,9 +94,9 @@ export default function ProfitChart({
         borderWidth: 3,
         displayColors: false,
         callbacks: {
-          title: (items: any) => `Day ${items[0].label}`,
-          label: (item: any) => {
-            const value = item.raw;
+          title: (items: { label: string }[]) => `Day ${items[0].label}`,
+          label: (tooltipItem: { raw: number }) => {
+            const value = tooltipItem.raw as number;
             return value < 0
               ? `-$${Math.abs(value).toLocaleString()}`
               : `$${value.toLocaleString()}`;
@@ -141,7 +142,7 @@ export default function ProfitChart({
         },
       },
     },
-    onClick: (event: any, elements: any) => {
+    onClick: (event: unknown, elements: { index: number }[]) => {
       if (elements.length > 0 && onPointClick) {
         const index = elements[0].index;
         onPointClick(daysInMonth[index]);

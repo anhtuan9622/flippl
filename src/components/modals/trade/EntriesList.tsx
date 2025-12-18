@@ -1,4 +1,3 @@
-import React from "react";
 import { DollarSign, BarChart2, Trash2 } from "lucide-react";
 import Button from "../../ui/Button";
 import { TradeEntryData } from "../../../types";
@@ -7,7 +6,7 @@ interface EntriesListProps {
   entries: TradeEntryData[];
   symbolEntries: { [key: string]: TradeEntryData[] };
   setEntries: (entries: TradeEntryData[]) => void;
-  setSymbolEntries: (entries: { [key: string]: TradeEntryData[] }) => void;
+  setSymbolEntries: (entries: { [key: string]: TradeEntryData[] } | ((prev: { [key: string]: TradeEntryData[] }) => { [key: string]: TradeEntryData[] })) => void;
   isSubmitting: boolean;
 }
 
@@ -29,9 +28,11 @@ export default function EntriesList({
     }));
   };
 
-  const formatNumber = (value: string) => {
-    const num = parseFloat(value);
-    return isNaN(num) ? "0" : num.toFixed(4);
+  const formatNumber = (value: number) => {
+    return isNaN(value) ? 0 : value.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   };
 
   return (
@@ -53,18 +54,18 @@ export default function EntriesList({
                   const buyTotal = entries
                     .filter((e) => e.transaction_type === "Buy")
                     .reduce((sum, e) => {
-                      const quantity = parseFloat(e.quantity) || 0;
-                      const price = parseFloat(e.price) || 0;
-                      const commission = parseFloat(e.commission) || 0;
+                      const quantity = e.quantity || 0;
+                      const price = e.price || 0;
+                      const commission = e.commission || 0;
                       return sum + quantity * price + commission;
                     }, 0);
 
                   const sellTotal = entries
                     .filter((e) => e.transaction_type === "Sell")
                     .reduce((sum, e) => {
-                      const quantity = parseFloat(e.quantity) || 0;
-                      const price = parseFloat(e.price) || 0;
-                      const commission = parseFloat(e.commission) || 0;
+                      const quantity = e.quantity || 0;
+                      const price = e.price || 0;
+                      const commission = e.commission || 0;
                       return sum + quantity * price - commission;
                     }, 0);
 
@@ -90,7 +91,7 @@ export default function EntriesList({
                   }`}
                 >
                   {totalProfit < 0 ? "-" : ""}$
-                  {Math.abs(totalProfit).toLocaleString(undefined, {
+                  {Math.abs(totalProfit).toLocaleString("en-US", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
@@ -143,7 +144,7 @@ export default function EntriesList({
                 
                     })}
                   </div>
-                  {parseFloat(entry.commission) > 0 && (
+                  {entry.commission > 0 && (
                     <div>Commission: ${formatNumber(entry.commission)}</div>
                   )}
                   {entry.notes && (

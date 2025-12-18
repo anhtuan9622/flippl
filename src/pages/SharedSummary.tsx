@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
@@ -79,7 +79,6 @@ export default function SharedSummary() {
 
   useEffect(() => {
     let mounted = true;
-    let pollInterval: number;
 
     const fetchSharedData = async () => {
       if (!shareId) {
@@ -151,7 +150,7 @@ export default function SharedSummary() {
     fetchSharedData();
 
     // Set up polling every 30 seconds
-    pollInterval = window.setInterval(() => {
+    const pollInterval = window.setInterval(() => {
       if (mounted) refreshData();
     }, 30000);
 

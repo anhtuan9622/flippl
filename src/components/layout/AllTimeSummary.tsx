@@ -1,9 +1,20 @@
 import React from 'react';
-import { DollarSign, BarChart2, CalendarDays, Percent, Flame } from 'lucide-react';
+import { DollarSign, BarChart2, CalendarDays, Percent } from 'lucide-react';
 import { format } from 'date-fns';
 import SummaryCard from '../SummaryCard';
 import TimePeriodSelect, { TimePeriod } from '../TimePeriodSelect';
-import { Stats } from '../types';
+
+interface YearToDateStats {
+  profit: number;
+  trades: number;
+  tradingDays: number;
+  winRate: number;
+  longestStreak?: {
+    days: number;
+    startDate: Date;
+    endDate: Date;
+  };
+}
 
 interface AllTimeSummaryProps {
   stats: YearToDateStats;

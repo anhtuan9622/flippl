@@ -1,4 +1,3 @@
-import React from "react";
 import { Lightbulb, Github, Mail, Coffee } from "lucide-react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { getVersion } from "../../lib/version";

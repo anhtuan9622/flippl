@@ -10,10 +10,10 @@ import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 
 interface AuthFormProps {
-  onSuccess: () => void;
+  _onSuccess?: () => void;
 }
 
-export default function AuthForm({ onSuccess }: AuthFormProps) {
+export default function AuthForm({ _onSuccess }: AuthFormProps) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 

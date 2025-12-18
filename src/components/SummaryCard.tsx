@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { DollarSign, Percent, TrendingUp, TrendingDown } from "lucide-react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 
@@ -74,6 +74,7 @@ const useCountUp = (endValue: number, duration: number = 1000) => {
         cancelAnimationFrame(frameRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [endValue, duration]);
 
   return count;

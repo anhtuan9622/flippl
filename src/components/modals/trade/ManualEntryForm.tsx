@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DollarSign, BarChart2, Save } from "lucide-react";
-import Button from "../../ui/Button";
+import { DollarSign, BarChart2 } from "lucide-react";
 import Input from "../../ui/Input";
 import Textarea from "../../ui/Textarea";
 import TagGroup from "../../ui/TagGroup";
@@ -16,7 +15,13 @@ interface ManualEntryFormProps {
   };
   isSubmitting: boolean;
   setIsSubmitting: (value: boolean) => void;
-  onSave: (data: { profit: number; trades: number; notes?: string; tags?: string[] }) => void;
+  onSave: (data: {
+    profit: number;
+    trades: number;
+    notes?: string;
+    tags?: string[];
+    entry_mode: string;
+  }) => void;
   onClose: () => void;
   onFormChange?: (values: { profit: string; trades: string }) => void;
 }
@@ -29,8 +34,12 @@ export default function ManualEntryForm({
   onClose,
   onFormChange,
 }: ManualEntryFormProps) {
-  const [profit, setProfit] = useState(existingTrade ? String(existingTrade.profit) : "");
-  const [trades, setTrades] = useState(existingTrade ? String(existingTrade.trades) : "");
+  const [profit, setProfit] = useState(
+    existingTrade ? String(existingTrade.profit) : ""
+  );
+  const [trades, setTrades] = useState(
+    existingTrade ? String(existingTrade.trades) : ""
+  );
   const [notes, setNotes] = useState(existingTrade?.notes || "");
   const [tags, setTags] = useState<string[]>(existingTrade?.tags || []);
   const [errors, setErrors] = useState<{
@@ -68,7 +77,7 @@ export default function ManualEntryForm({
 
     setIsSubmitting(true);
     try {
-      const success = await onSave({
+      await onSave({
         profit: Number(profit),
         trades: Number(trades),
         notes,
@@ -76,16 +85,18 @@ export default function ManualEntryForm({
         entry_mode: "manual",
       });
 
-      if (success) {
-        onClose();
-      }
+      onClose();
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <form id="manual-entry-form" onSubmit={handleSubmit} className="gap-8 grid-cols grid md:grid-cols-2">
+    <form
+      id="manual-entry-form"
+      onSubmit={handleSubmit}
+      className="gap-8 grid-cols grid md:grid-cols-2"
+    >
       <Input
         type="number"
         value={profit}
@@ -139,7 +150,9 @@ export default function ManualEntryForm({
           selectedTags={tags}
           onTagToggle={(tag) => {
             setTags((prev) =>
-              prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+              prev.includes(tag)
+                ? prev.filter((t) => t !== tag)
+                : [...prev, tag]
             );
           }}
           disabled={isSubmitting}

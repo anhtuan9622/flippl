@@ -5,7 +5,6 @@ import {
   endOfDay,
   isSameDay,
   isAfter,
-  isSameMonth,
 } from "date-fns";
 import { Stats, DayData } from "../types";
 import { TimePeriod } from "../components/TimePeriodSelect";
@@ -60,27 +59,30 @@ export const calculateStats = (
   let filteredTrades = [...trades];
 
   switch (period) {
-    case "year-to-date":
+    case "year-to-date": {
       const yearStart = startOfYear(now);
       filteredTrades = trades.filter(
         (trade) =>
           isAfter(trade.date, yearStart) || isSameDay(trade.date, yearStart)
       );
       break;
-    case "month-to-date":
+    }
+    case "month-to-date": {
       const monthStart = startOfMonth(now);
       filteredTrades = trades.filter(
         (trade) =>
           isAfter(trade.date, monthStart) || isSameDay(trade.date, monthStart)
       );
       break;
-    case "week-to-date":
+    }
+    case "week-to-date": {
       const weekStart = startOfWeek(now, { weekStartsOn: 0 });
       filteredTrades = trades.filter(
         (trade) =>
           isAfter(trade.date, weekStart) || isSameDay(trade.date, weekStart)
       );
       break;
+    }
     default:
       break;
   }

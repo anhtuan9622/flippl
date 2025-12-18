@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 import { DivideIcon as LucideIcon } from 'lucide-react';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  icon?: LucideIcon;
+  icon?: typeof LucideIcon;
   error?: string;
   label?: string;
   rightElement?: React.ReactNode;

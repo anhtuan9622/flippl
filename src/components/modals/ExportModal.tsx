@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Download, Check } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import toast from "react-hot-toast";

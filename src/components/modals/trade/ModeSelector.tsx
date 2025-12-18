@@ -1,4 +1,3 @@
-import React from "react";
 import { Baseline, List } from "lucide-react";
 import Button from "../../ui/Button";
 

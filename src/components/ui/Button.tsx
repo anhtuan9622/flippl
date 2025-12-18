@@ -5,7 +5,7 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "default" | "primary" | "danger" | "ghost" | "select" | "link";
   size?: "sm" | "md" | "lg";
-  icon?: LucideIcon;
+  icon?: typeof LucideIcon;
   iconPosition?: "left" | "right";
   loading?: boolean;
   fullWidth?: boolean;

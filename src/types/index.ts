@@ -14,9 +14,9 @@ export interface TradeEntryData {
   trade_id?: string;
   transaction_type: 'Buy' | 'Sell';
   symbol: string;
-  quantity: string;
-  price: string;
-  commission: string;
+  quantity: number;
+  price: number;
+  commission: number;
   total_amount: number;
   trade_profit?: number;
   notes?: string;

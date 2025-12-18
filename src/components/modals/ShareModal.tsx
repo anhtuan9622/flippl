@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Share2, Check, Copy } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import Button from "../ui/Button";

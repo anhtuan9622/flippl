@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { TradeEntryData } from '../types';
 import toast from 'react-hot-toast';
 
-interface UseTradeEntriesOptions {
+interface _UseTradeEntriesOptions {
   onEntriesUpdated?: () => void;
 }
 
@@ -97,7 +97,7 @@ export function useTradeEntries(tradeId?: string) {
       const { error: entriesError } = await supabase
         .from('trade_entries')
         .insert(
-          entries.map(({ id, ...entry }) => ({
+          entries.map(({ id: _id, ...entry }) => ({
             ...entry,
             trade_id: finalTradeId
           }))

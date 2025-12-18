@@ -12,7 +12,7 @@ interface EntryFormProps {
   entries: TradeEntryData[];
   setEntries: (entries: TradeEntryData[]) => void;
   symbolEntries: { [key: string]: TradeEntryData[] };
-  setSymbolEntries: (entries: { [key: string]: TradeEntryData[] }) => void;
+  setSymbolEntries: (entries: { [key: string]: TradeEntryData[] } | ((prev: { [key: string]: TradeEntryData[] }) => { [key: string]: TradeEntryData[] })) => void;
   isSubmitting: boolean;
 }
 
@@ -26,10 +26,10 @@ export default function EntryForm({
   const [currentEntry, setCurrentEntry] = useState<TradeEntryData>({
     transaction_type: "Buy",
     symbol: "",
-    quantity: "",
-    price: "",
+    quantity: 0,
+    price: 0,
     total_amount: 0,
-    commission: "",
+    commission: 0,
     notes: "",
     tags: [],
   });
@@ -40,8 +40,8 @@ export default function EntryForm({
   }>({});
 
   useEffect(() => {
-    const quantity = parseFloat(currentEntry.quantity) || 0;
-    const price = parseFloat(currentEntry.price) || 0;
+    const quantity = currentEntry.quantity || 0;
+    const price = currentEntry.price || 0;
     const total = quantity * price;
 
     setCurrentEntry((prev) => ({
@@ -100,12 +100,12 @@ export default function EntryForm({
       newErrors.symbol = "Symbol is required";
     }
 
-    const quantity = parseFloat(currentEntry.quantity);
+    const quantity = currentEntry.quantity;
     if (!quantity || quantity <= 0) {
       newErrors.quantity = "Quantity must be greater than 0";
     }
 
-    const price = parseFloat(currentEntry.price);
+    const price = currentEntry.price;
     if (!price || price <= 0) {
       newErrors.price = "Price must be greater than 0";
     }
@@ -130,13 +130,13 @@ export default function EntryForm({
       }
 
       const totalBuyQuantity = buyEntries.reduce(
-        (sum, e) => sum + (parseFloat(e.quantity) || 0),
+        (sum, e) => sum + (e.quantity || 0),
         0
       );
 
       const totalSellQuantity = existingEntries
         .filter((e) => e.transaction_type === "Sell")
-        .reduce((sum, e) => sum + (parseFloat(e.quantity) || 0), 0);
+        .reduce((sum, e) => sum + (e.quantity || 0), 0);
 
       if (totalSellQuantity + quantity > totalBuyQuantity) {
         toast.error(
@@ -157,10 +157,10 @@ export default function EntryForm({
     setCurrentEntry({
       transaction_type: "Buy",
       symbol: "",
-      quantity: "",
-      price: "",
+      quantity: 0,
+      price: 0,
       total_amount: 0,
-      commission: "",
+      commission: 0,
       notes: "",
       tags: [],
     });
@@ -238,7 +238,7 @@ export default function EntryForm({
             Total Amount ($)
           </label>
           <div className="neo-input w-full bg-gray-100">
-            ${currentEntry.total_amount.toLocaleString(undefined, {
+            ${currentEntry.total_amount.toLocaleString("en-US", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
@@ -259,7 +259,7 @@ export default function EntryForm({
         <div className="col-span-2">
           <TagGroup
             label="Tags"
-            tags={STRATEGY_TAGS}
+            tags={[...STRATEGY_TAGS]}
             selectedTags={currentEntry.tags || []}
             onTagToggle={handleTagToggle}
             disabled={isSubmitting}
@@ -275,8 +275,8 @@ export default function EntryForm({
         disabled={
           isSubmitting ||
           !currentEntry.symbol ||
-          !parseFloat(currentEntry.quantity) ||
-          !parseFloat(currentEntry.price)
+          !currentEntry.quantity ||
+          !currentEntry.price
         }
       >
         Add Entry

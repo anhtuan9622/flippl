@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LogOut, User, Mail, ChevronDown, Lightbulb, Lock } from "lucide-react";
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { LogOut, User, Mail, ChevronDown } from "lucide-react";
 import * as Popover from "@radix-ui/react-popover";
 import Button from "../ui/Button";
 import Logo from "../../assets/Logo";
@@ -17,7 +17,6 @@ export default function Header({
   onSignOut,
   userEmail,
 }: HeaderProps) {
-  const navigate = useNavigate();
   const location = useLocation();
   const isHomePage = location.pathname === "/";
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);

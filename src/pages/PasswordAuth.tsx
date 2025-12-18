@@ -18,7 +18,7 @@ export default function PasswordAuth({ onSuccess }: PasswordAuthProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +57,7 @@ export default function PasswordAuth({ onSuccess }: PasswordAuthProps) {
     }
   };
 
-  const handleForgotPassword = async () => {
+  const _handleForgotPassword = async () => {
     if (!email) {
       toast.error("Please enter your email address");
       return;

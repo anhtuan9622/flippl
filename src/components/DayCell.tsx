@@ -1,4 +1,3 @@
-import React from 'react';
 import { format } from 'date-fns';
 import { DayData } from '../types';
 import { TrendingUp, TrendingDown } from 'lucide-react';

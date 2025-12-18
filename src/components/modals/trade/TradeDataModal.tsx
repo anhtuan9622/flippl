@@ -18,7 +18,7 @@ interface TradeDataModalProps {
     tags?: string[];
   };
   onSave: (data: { profit: number; trades: number; notes?: string; tags?: string[] }) => void;
-  onDelete?: (id: string) => void;
+  onDelete?: (id: string) => boolean | Promise<boolean>;
   onClose: () => void;
   onEntriesUpdated: () => void;
 }
@@ -40,7 +40,7 @@ export default function TradeDataModal({
   });
   
   const {
-    loading: entriesLoading,
+    loading: _entriesLoading,
     saveTradeEntries,
     deleteTradeEntries,
     data: existingEntries
@@ -50,9 +50,9 @@ export default function TradeDataModal({
     if (existingEntries?.length > 0) {
       const formattedEntries = existingEntries.map((entry) => ({
         ...entry,
-        quantity: String(entry.quantity),
-        price: String(entry.price),
-        commission: String(entry.commission || 0),
+        quantity: entry.quantity || 0,
+        price: entry.price || 0,
+        commission: entry.commission || 0,
       }));
       setEntries(formattedEntries);
       setIsDetailedMode(true);
@@ -77,7 +77,7 @@ export default function TradeDataModal({
         success = await deleteTradeEntries(existingTrade.id);
         if (!success) return;
       }
-      success = await onDelete(existingTrade.id);
+      success = (await onDelete(existingTrade.id)) || false;
       if (success) {
         await onEntriesUpdated();
         onClose();
@@ -85,7 +85,7 @@ export default function TradeDataModal({
     } finally {
       setIsSubmitting(false);
     }
-  }, [existingTrade, onDelete, isSubmitting, isDetailedMode, deleteTradeEntries, onEntriesUpdated]);
+  }, [existingTrade, onDelete, isSubmitting, isDetailedMode, deleteTradeEntries, onEntriesUpdated, onClose]);
 
   const handleModalClick = (e: React.MouseEvent) => {
     e.stopPropagation();

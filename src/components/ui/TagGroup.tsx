@@ -1,7 +1,6 @@
-import React from "react";
 
 export interface TagGroupProps {
-  tags: string[];
+  tags: readonly string[];
   selectedTags: string[];
   onTagToggle: (tag: string) => void;
   disabled?: boolean;

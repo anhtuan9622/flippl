@@ -1,10 +1,10 @@
-import React from 'react';
+import { ReactNode } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import LoadingOverlay from './LoadingOverlay';
 
 interface AppLayoutProps {
-  children: React.ReactNode;
+  children: ReactNode;
   userEmail?: string | null;
   onSignOut?: () => void;
   loading?: boolean;
@@ -18,7 +18,7 @@ export default function AppLayout({ children, userEmail, onSignOut, loading = fa
         <Header
           showSignOut={!!onSignOut}
           onSignOut={onSignOut}
-          userEmail={userEmail}
+          userEmail={userEmail || undefined}
         />
         {children}
         <Footer />
