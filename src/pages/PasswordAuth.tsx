@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import toast from "react-hot-toast";
@@ -18,7 +18,6 @@ export default function PasswordAuth({ onSuccess }: PasswordAuthProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
-  const _navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +56,7 @@ export default function PasswordAuth({ onSuccess }: PasswordAuthProps) {
     }
   };
 
-  const _handleForgotPassword = async () => {
+  const handleForgotPassword = async () => {
     if (!email) {
       toast.error("Please enter your email address");
       return;
@@ -141,7 +140,7 @@ export default function PasswordAuth({ onSuccess }: PasswordAuthProps) {
                 <Button
                   variant="link"
                   type="button"
-                  onClick={() => setIsSignUp(!isSignUp)}
+                  onClick={handleForgotPassword}
                   disabled={loading}
                   className="text-sm"
                 >
