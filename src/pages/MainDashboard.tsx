@@ -13,6 +13,7 @@ import {
 import Button from "../components/ui/Button";
 import { DayData } from "../types";
 import { calculateMonthStats, calculateStats } from "../utils/stats";
+import { formatCsvRow } from "../utils/csv";
 import { TimePeriod } from "../components/TimePeriodSelect";
 import Calendar from "../components/Calendar";
 import TradeDataModal from "../components/modals/trade/TradeDataModal";
@@ -83,16 +84,16 @@ export default function MainDashboard({
       const stats = calculateStats(sortedData, timePeriod);
 
       const csvContent = [
-        ["Date", "Profit/Loss ($)", "No. of Trades", "Win/Loss", "Notes", "Tags"].join(","),
+        formatCsvRow(["Date", "Profit/Loss ($)", "No. of Trades", "Win/Loss", "Notes", "Tags"]),
         ...sortedData.map((day) =>
-          [
+          formatCsvRow([
             format(day.date, "yyyy-MM-dd"),
             day.trades?.profit || 0,
             day.trades?.trades || 0,
             day.trades?.profit && day.trades.profit > 0 ? "Win" : "Loss",
             day.trades?.notes,
-            day.trades?.tags || "",
-          ].join(",")
+            (day.trades?.tags ?? []).join("; "),
+          ])
         ),
         "",
         "Summary",
