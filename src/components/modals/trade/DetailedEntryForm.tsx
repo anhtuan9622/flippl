@@ -13,9 +13,10 @@ interface DetailedEntryFormProps {
   setEntries: (entries: TradeEntryData[]) => void;
   isSubmitting: boolean;
   setIsSubmitting: (value: boolean) => void;
-  onSave: (date: Date, entries: TradeEntryData[], tradeId?: string) => Promise<boolean>;
+  onSave: (date: Date, entries: TradeEntryData[], tradeId?: string) => Promise<string | false>;
   onClose: () => void;
   onEntriesUpdated: () => void;
+  afterSave?: (tradeId: string) => Promise<void>;
 }
 
 export default function DetailedEntryForm({
@@ -28,6 +29,7 @@ export default function DetailedEntryForm({
   onSave,
   onClose,
   onEntriesUpdated,
+  afterSave,
 }: DetailedEntryFormProps) {
   const [symbolEntries, setSymbolEntries] = useState(() => entries.reduce((acc, entry) => {
     if (!acc[entry.symbol]) {
@@ -106,9 +108,10 @@ export default function DetailedEntryForm({
         commission: entry.commission || 0,
       }));
 
-      const success = await onSave(date, processedEntries, existingTrade?.id);
+      const tradeId = await onSave(date, processedEntries, existingTrade?.id);
 
-      if (success) {
+      if (tradeId) {
+        if (afterSave) await afterSave(tradeId);
         await onEntriesUpdated();
         onClose();
       }

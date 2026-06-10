@@ -41,9 +41,15 @@ export function useTradeData(userId: string | null) {
 
   const handleSaveTradeData = async (
     selectedDate: Date,
-    data: { profit: number; trades: number; notes?: string; tags?: string[] }
-  ) => {
-    if (!selectedDate) return;
+    data: {
+      profit: number;
+      trades: number;
+      notes?: string;
+      tags?: string[];
+      entry_mode?: string;
+    }
+  ): Promise<string | false> => {
+    if (!selectedDate) return false;
 
     try {
       const { session } = await safeGetSession();
@@ -55,27 +61,32 @@ export function useTradeData(userId: string | null) {
 
       const formattedDate = format(selectedDate, "yyyy-MM-dd");
 
-      const { error } = await supabase.from("trades").upsert(
-        {
-          user_id: session.user.id,
-          date: formattedDate,
-          profit: data.profit,
-          trades_count: data.trades,
-          notes: data.notes,
-          tags: data.tags,
-        },
-        {
-          onConflict: "user_id,date",
-          ignoreDuplicates: false,
-        }
-      );
+      const { data: trade, error } = await supabase
+        .from("trades")
+        .upsert(
+          {
+            user_id: session.user.id,
+            date: formattedDate,
+            profit: data.profit,
+            trades_count: data.trades,
+            notes: data.notes,
+            tags: data.tags,
+            entry_mode: data.entry_mode ?? "manual",
+          },
+          {
+            onConflict: "user_id,date",
+            ignoreDuplicates: false,
+          }
+        )
+        .select("id")
+        .single();
 
       if (error) throw error;
 
       const updatedTrades = await fetchTradeData();
       setTradeData(updatedTrades);
       toast.success("Trade data saved successfully");
-      return true;
+      return trade?.id ?? false;
     } catch (error) {
       console.error("Failed to save trade data:", error);
       toast.error("Failed to save trade data. Try again");

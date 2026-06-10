@@ -62,7 +62,7 @@ export function useTradeEntries(tradeId?: string) {
     entries: TradeEntryData[],
     tradeId?: string,
     onSuccess?: () => void
-  ) => {
+  ): Promise<string | false> => {
     if (loading) return false;
     setLoading(true);
 
@@ -110,7 +110,7 @@ export function useTradeEntries(tradeId?: string) {
         onSuccess();
       }
       setData(entries);
-      return true;
+      return finalTradeId ?? false;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to save trade entries';
       console.error('Error saving trade entries:', error);

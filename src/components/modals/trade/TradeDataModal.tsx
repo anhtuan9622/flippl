@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { X, Trash2, Save } from "lucide-react";
 import Button from "../../ui/Button";
@@ -7,6 +7,7 @@ import { TradeEntryData } from "../../../types";
 import ModeSelector from "./ModeSelector";
 import ManualEntryForm from "./ManualEntryForm";
 import DetailedEntryForm from "./DetailedEntryForm";
+import ScreenshotUpload, { ScreenshotUploadHandle } from "./ScreenshotUpload";
 
 interface TradeDataModalProps {
   date: Date;
@@ -17,7 +18,13 @@ interface TradeDataModalProps {
     notes?: string;
     tags?: string[];
   };
-  onSave: (data: { profit: number; trades: number; notes?: string; tags?: string[] }) => void;
+  onSave: (data: {
+    profit: number;
+    trades: number;
+    notes?: string;
+    tags?: string[];
+    entry_mode?: string;
+  }) => Promise<string | false>;
   onDelete?: (id: string) => boolean | Promise<boolean>;
   onClose: () => void;
   onEntriesUpdated: () => void;
@@ -35,15 +42,16 @@ export default function TradeDataModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [entries, setEntries] = useState<TradeEntryData[]>([]);
   const [formValues, setFormValues] = useState<{ profit: string; trades: string }>({
-    profit: existingTrade?.profit.toString() || '',
-    trades: existingTrade?.trades.toString() || ''
+    profit: existingTrade?.profit.toString() || "",
+    trades: existingTrade?.trades.toString() || "",
   });
-  
+  const screenshotRef = useRef<ScreenshotUploadHandle>(null);
+
   const {
     loading: _entriesLoading,
     saveTradeEntries,
     deleteTradeEntries,
-    data: existingEntries
+    data: existingEntries,
   } = useTradeEntries(existingTrade?.id);
 
   useEffect(() => {
@@ -85,11 +93,23 @@ export default function TradeDataModal({
     } finally {
       setIsSubmitting(false);
     }
-  }, [existingTrade, onDelete, isSubmitting, isDetailedMode, deleteTradeEntries, onEntriesUpdated, onClose]);
+  }, [
+    existingTrade,
+    onDelete,
+    isSubmitting,
+    isDetailedMode,
+    deleteTradeEntries,
+    onEntriesUpdated,
+    onClose,
+  ]);
 
   const handleModalClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
+
+  const handleAfterSave = useCallback(async (tradeId: string) => {
+    await screenshotRef.current?.uploadPending(tradeId);
+  }, []);
 
   return (
     <div
@@ -103,17 +123,9 @@ export default function TradeDataModal({
         <div className="mb-6 flex flex-shrink-0 items-center justify-between">
           <h2 className="text-2xl font-black text-black">
             {existingTrade ? "Edit" : "Add"} Trade Data
-            <div className="text-base font-bold text-gray-600">
-              {format(date, "MMMM d, yyyy")}
-            </div>
+            <div className="text-base font-bold text-gray-600">{format(date, "MMMM d, yyyy")}</div>
           </h2>
-          <Button
-            variant="default"
-            icon={X}
-            size="sm"
-            onClick={onClose}
-            disabled={isSubmitting}
-          />
+          <Button variant="default" icon={X} size="sm" onClick={onClose} disabled={isSubmitting} />
         </div>
 
         <div className="flex-1 space-y-6 pb-2 overflow-y-auto pr-2">
@@ -134,6 +146,7 @@ export default function TradeDataModal({
               onSave={saveTradeEntries}
               onClose={onClose}
               onEntriesUpdated={onEntriesUpdated}
+              afterSave={handleAfterSave}
             />
           ) : (
             <ManualEntryForm
@@ -143,9 +156,15 @@ export default function TradeDataModal({
               onSave={onSave}
               onClose={onClose}
               onFormChange={setFormValues}
+              afterSave={handleAfterSave}
             />
           )}
 
+          <ScreenshotUpload
+            ref={screenshotRef}
+            tradeId={existingTrade?.id}
+            disabled={isSubmitting}
+          />
           <div className="mt-auto flex justify-between gap-3 border-t-4 border-black pt-4">
             {existingTrade && onDelete && (
               <Button
@@ -157,12 +176,7 @@ export default function TradeDataModal({
               />
             )}
             <div className="ml-auto flex gap-3">
-              <Button
-                variant="default"
-                type="button"
-                onClick={onClose}
-                disabled={isSubmitting}
-              >
+              <Button variant="default" type="button" onClick={onClose} disabled={isSubmitting}>
                 Cancel
               </Button>
               <Button

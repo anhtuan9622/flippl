@@ -118,7 +118,7 @@ export default function SummaryCard({
   const card = (
     <div
       className={`neo-brutalist-gray ${
-        size === "lg" ? "p-4" : "px-3 py-2"
+        size === "lg" ? "p-3" : "px-3 py-2"
       } w-full active:translate-y-[1px] active:translate-x-[1px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all`}
     >
       <div
@@ -164,13 +164,13 @@ export default function SummaryCard({
                 (isNumber && value > 0 ? (
                   <TrendingUp
                     className={`${
-                      size === "lg" ? "w-4 h-4 lg:w-8 lg:h-8" : "w-4 h-4"
+                      size === "lg" ? "w-4 h-4 lg:w-6 lg:h-6" : "w-4 h-4"
                     } text-green-600`}
                   />
                 ) : isNumber && value < 0 ? (
                   <TrendingDown
                     className={`${
-                      size === "lg" ? "w-8 h-8" : "w-4 h-4"
+                      size === "lg" ? "w-6 h-6" : "w-4 h-4"
                     } text-red-600`}
                   />
                 ) : null)}

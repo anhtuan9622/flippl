@@ -21,9 +21,10 @@ interface ManualEntryFormProps {
     notes?: string;
     tags?: string[];
     entry_mode: string;
-  }) => void;
+  }) => Promise<string | false>;
   onClose: () => void;
   onFormChange?: (values: { profit: string; trades: string }) => void;
+  afterSave?: (tradeId: string) => Promise<void>;
 }
 
 export default function ManualEntryForm({
@@ -33,6 +34,7 @@ export default function ManualEntryForm({
   onSave,
   onClose,
   onFormChange,
+  afterSave,
 }: ManualEntryFormProps) {
   const [profit, setProfit] = useState(
     existingTrade ? String(existingTrade.profit) : ""
@@ -77,7 +79,7 @@ export default function ManualEntryForm({
 
     setIsSubmitting(true);
     try {
-      await onSave({
+      const tradeId = await onSave({
         profit: Number(profit),
         trades: Number(trades),
         notes,
@@ -85,7 +87,10 @@ export default function ManualEntryForm({
         entry_mode: "manual",
       });
 
-      onClose();
+      if (tradeId) {
+        if (afterSave) await afterSave(tradeId);
+        onClose();
+      }
     } finally {
       setIsSubmitting(false);
     }
